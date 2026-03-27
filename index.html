@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LicitaInteligente Pro</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(typeof pdfjsLib!=='undefined')pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;background:#f5f5f3;color:#1a1a18;min-height:100vh;}
+
+/* TOPBAR */
+.topbar{background:#fff;border-bottom:1px solid #e5e5e0;padding:.6rem 1.2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:8px;}
+.topbar h1{font-size:15px;font-weight:700;color:#1a1a18;}
+.topbar-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.empresa-selector{display:flex;align-items:center;gap:6px;background:#f5f5f3;border:1px solid #e5e5e0;border-radius:8px;padding:4px 10px;cursor:pointer;}
+.empresa-selector select{border:none;background:transparent;font-size:12px;font-weight:600;color:#1a1a18;cursor:pointer;outline:none;max-width:160px;}
+.empresa-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;}
+.badge-live{background:#EAF3DE;color:#3B6D11;}
+.badge-demo{background:#FAEEDA;color:#854F0B;}
+
+/* LAYOUT */
+.main{max-width:980px;margin:0 auto;padding:1rem;}
+.setup-bar{border-radius:10px;padding:.75rem 1rem;font-size:11px;margin-bottom:.9rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.setup-warn{background:#FAEEDA;border:1px solid #FAC775;color:#633806;}
+.setup-ok{background:#EAF3DE;border:1px solid #9FE1CB;color:#3B6D11;}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:7px;margin-bottom:.9rem;}
+.metric{background:#fff;border-radius:10px;padding:.7rem .9rem;border:1px solid #e5e5e0;}
+.metric-label{font-size:10px;color:#888;margin-bottom:2px;}
+.metric-value{font-size:18px;font-weight:700;}
+.metric-sub{font-size:10px;color:#aaa;margin-top:1px;}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid #e5e5e0;overflow-x:auto;background:#fff;border-radius:10px 10px 0 0;padding:0 .4rem;}
+.tab{font-size:11px;padding:9px 12px;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:all .15s;}
+.tab.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:700;}
+.tab-content{background:#fff;border-radius:0 0 10px 10px;padding:1rem;border:1px solid #e5e5e0;border-top:none;margin-bottom:1rem;}
+
+/* EMPRESA CARD */
+.empresa-card{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:.9rem 1rem;margin-bottom:8px;position:relative;}
+.empresa-card.active-empresa{border:2px solid #185FA5;}
+.empresa-color-strip{width:4px;border-radius:2px;position:absolute;left:0;top:8px;bottom:8px;}
+.subrubro-tag{font-size:10px;padding:2px 8px;border-radius:20px;background:#E6F1FB;color:#185FA5;display:inline-block;margin:2px;cursor:pointer;border:1px solid #B5D4F4;}
+.subrubro-tag.agri{background:#EAF3DE;color:#3B6D11;border-color:#9FE1CB;}
+.subrubro-tag.salud{background:#FCEBEB;color:#A32D2D;border-color:#F09595;}
+.subrubro-tag.industrial{background:#F0EFFE;color:#5046AD;border-color:#C5C0F5;}
+.subrubro-tag.cultural{background:#FEF3E0;color:#854F0B;border-color:#FAC775;}
+
+/* FILTERS */
+.filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:.8rem;}
+.chip{font-size:10px;padding:3px 10px;border-radius:20px;border:1px solid #e0e0d8;background:#fff;cursor:pointer;color:#888;transition:all .15s;}
+.chip.active{background:#E6F1FB;color:#185FA5;border-color:#85B7EB;}
+.chip.agri-chip.active{background:#EAF3DE;color:#3B6D11;border-color:#9FE1CB;}
+.chip.salud-chip.active{background:#FCEBEB;color:#A32D2D;border-color:#F09595;}
+.chip.industrial-chip.active{background:#F0EFFE;color:#5046AD;border-color:#C5C0F5;}
+
+/* LICIT CARDS */
+.licit-card{background:#fff;border:1px solid #e5e5e0;border-radius:10px;padding:.85rem .95rem;cursor:pointer;margin-bottom:7px;transition:border-color .15s;}
+.licit-card:hover{border-color:#b0b0a8;}
+.licit-card.selected{border:2px solid #378ADD;}
+.licit-card.risk-flagged{border-left:3px solid #E24B4A;}
+.licit-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;}
+.licit-title{font-size:12px;font-weight:700;flex:1;line-height:1.4;}
+.score-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0;}
+.sh{background:#EAF3DE;color:#3B6D11;}.sm{background:#FAEEDA;color:#854F0B;}.sl{background:#FCEBEB;color:#A32D2D;}
+.licit-meta{display:flex;gap:8px;flex-wrap:wrap;font-size:10px;color:#888;margin-bottom:4px;}
+.tag{font-size:9px;padding:2px 6px;border-radius:20px;background:#E6F1FB;color:#185FA5;display:inline-block;}
+.tag-alert{background:#FAEEDA;color:#854F0B;}
+.tag-risk{background:#FCEBEB;color:#A32D2D;}
+.tag-ok{background:#EAF3DE;color:#3B6D11;}
+.tag-gray{background:#f0f0ec;color:#666;}
+.tag-agri{background:#EAF3DE;color:#3B6D11;}
+.tag-salud{background:#FCEBEB;color:#A32D2D;}
+.tag-industrial{background:#F0EFFE;color:#5046AD;}
+.progress-bar{height:4px;border-radius:2px;background:#f0f0ec;margin-top:5px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:2px;}
+
+/* PANELS */
+.panel{background:#f9f9f7;border:1px solid #e5e5e0;border-radius:10px;padding:.9rem 1rem;margin-bottom:.8rem;}
+.panel h3{font-size:13px;font-weight:700;margin-bottom:.6rem;}
+.ai-box{border-radius:8px;padding:.7rem .85rem;font-size:11px;line-height:1.7;margin-bottom:.7rem;}
+.ai-red{background:#FCEBEB;color:#791F1F;border:1px solid #F7C1C1;}
+.ai-amber{background:#FAEEDA;color:#633806;border:1px solid #FAC775;}
+.ai-green{background:#E1F5EE;color:#085041;border:1px solid #9FE1CB;}
+.ai-blue{background:#E6F1FB;color:#185FA5;border:1px solid #B5D4F4;}
+.ai-purple{background:#EEEDFE;color:#3C3489;border:1px solid #CECBF6;}
+.data-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:7px;margin-bottom:.7rem;}
+.data-item{background:#fff;border:1px solid #e5e5e0;border-radius:8px;padding:.55rem .75rem;}
+.di-label{font-size:10px;color:#888;margin-bottom:1px;}
+.di-val{font-size:12px;font-weight:600;}.di-val.red{color:#A32D2D;}.di-val.green{color:#3B6D11;}.di-val.amber{color:#854F0B;}
+
+/* FORMS */
+.btn{font-size:11px;padding:5px 11px;border-radius:8px;border:1px solid #e0e0d8;background:#fff;cursor:pointer;color:#1a1a18;transition:all .15s;font-weight:500;}
+.btn:hover{background:#f5f5f3;}
+.btn-primary{background:#185FA5;color:white;border-color:#185FA5;}
+.btn-primary:hover{background:#0C447C;}
+.btn-danger{background:#FCEBEB;color:#A32D2D;border-color:#F09595;}
+.btn-sm{font-size:10px;padding:3px 8px;}
+.fg{margin-bottom:.65rem;}
+.fg label{font-size:10px;color:#888;display:block;margin-bottom:2px;font-weight:600;}
+.fg input,.fg select,.fg textarea{width:100%;padding:6px 9px;border-radius:8px;border:1px solid #e0e0d8;font-size:12px;background:#fff;color:#1a1a18;outline:none;transition:border-color .15s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#378ADD;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+/* MISC */
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid #e0e0d8;border-top-color:#378ADD;border-radius:50%;animation:spin .7s linear infinite;margin-right:5px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading{text-align:center;padding:1.5rem;color:#888;font-size:12px;}
+.sep{border:none;border-top:1px solid #e5e5e0;margin:.7rem 0;}
+.sec-title{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.inner-tabs{display:flex;border-bottom:1px solid #e5e5e0;margin-bottom:.8rem;overflow-x:auto;}
+.inner-tab{font-size:10px;padding:6px 11px;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;font-weight:500;}
+.inner-tab.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:700;}
+.pdf-drop{border:2px dashed #e0e0d8;border-radius:10px;padding:1.5rem;text-align:center;cursor:pointer;margin-bottom:.8rem;background:#fafaf8;}
+.pdf-drop:hover{border-color:#378ADD;}
+.result-pill{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:700;}
+.won{background:#EAF3DE;color:#3B6D11;}.lost{background:#FCEBEB;color:#A32D2D;}.pending{background:#FAEEDA;color:#854F0B;}
+.signal-item{display:flex;align-items:flex-start;gap:8px;padding:.5rem .65rem;border-radius:8px;border:1px solid #e5e5e0;margin-bottom:5px;background:#fff;}
+.signal-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;font-weight:700;}
+.sig-red{background:#F7C1C1;color:#791F1F;}.sig-amber{background:#FAC775;color:#412402;}
+.risk-gauge{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem;}
+.hm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:7px;}
+.hm-card{border-radius:8px;padding:.65rem .8rem;border:1px solid #e5e5e0;cursor:pointer;}
+.hm-card:hover{opacity:.85;}
+.hm-bar{height:4px;border-radius:2px;background:#e5e5e0;margin-top:4px;overflow:hidden;}
+.org-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:7px;}
+.org-card{background:#fff;border-radius:8px;padding:.7rem .85rem;border:1px solid #e5e5e0;cursor:pointer;}
+.org-card:hover{border-color:#b0b0a8;}
+.org-card.flagged{border-left:3px solid #E24B4A;}
+.sim-item label{font-size:10px;color:#888;display:block;margin-bottom:2px;font-weight:600;}
+.sim-item input[type=range]{width:100%;accent-color:#185FA5;}
+.alert-card{background:#fff;border:1px solid #e5e5e0;border-radius:8px;padding:.7rem .85rem;margin-bottom:6px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.partic-card{background:#fff;border:1px solid #e5e5e0;border-radius:8px;padding:.7rem .85rem;margin-bottom:6px;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:14px;padding:1.2rem;width:90%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.modal h2{font-size:15px;font-weight:700;margin-bottom:1rem;}
+
+@media(max-width:560px){.g2,.g3{grid-template-columns:1fr;}.metrics{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div>
+      <h1>LicitaInteligente Pro</h1>
+      <div style="font-size:10px;color:#888;">Mercado Público Chile · Multi-empresa</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="empresa-selector" id="empresa-selector-wrap">
+      <div class="empresa-dot" id="empresa-dot" style="background:#185FA5;"></div>
+      <select id="empresa-select" onchange="switchEmpresa(this.value)"></select>
+      <button onclick="openModal('modal-empresa',null)" style="border:none;background:transparent;cursor:pointer;font-size:14px;color:#185FA5;padding:0;line-height:1;" title="Agregar empresa">＋</button>
+    </div>
+    <span class="badge badge-demo" id="api-status">Iniciando...</span>
+    <button class="btn btn-primary" onclick="fetchLicitaciones()">↻ Barrido</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- SETUP API KEY -->
+<div class="setup-bar setup-warn" id="setup-bar">
+  <span>⚙ Ingresa tu API Key de Anthropic para activar el análisis IA:</span>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+    <input type="password" id="anthropic-key" placeholder="sk-ant-api03-..." style="padding:5px 9px;border-radius:6px;border:1px solid #FAC775;font-size:11px;width:220px;background:#fff;"/>
+    <button class="btn btn-primary btn-sm" onclick="saveApiKey()">Guardar</button>
+    <a href="https://console.anthropic.com/settings/keys" target="_blank" style="font-size:10px;color:#854F0B;font-weight:600;">Obtener →</a>
+  </div>
+</div>
+
+<!-- METRICS -->
+<div class="metrics">
+  <div class="metric"><div class="metric-label">Licitaciones hoy</div><div class="metric-value" id="m-total">—</div><div class="metric-sub">publicadas</div></div>
+  <div class="metric"><div class="metric-label">Para empresa activa</div><div class="metric-value" id="m-oport" style="color:#185FA5;">—</div><div class="metric-sub">relevantes</div></div>
+  <div class="metric"><div class="metric-label">Mejor score</div><div class="metric-value" id="m-max" style="color:#3B6D11;">—</div><div class="metric-sub">probabilidad</div></div>
+  <div class="metric"><div class="metric-label">Con reclamos</div><div class="metric-value" id="m-reclamos" style="color:#E24B4A;">0</div><div class="metric-sub">organismos</div></div>
+  <div class="metric"><div class="metric-label">Alertas activas</div><div class="metric-value" id="m-alerts">0</div><div class="metric-sub">configuradas</div></div>
+  <div class="metric"><div class="metric-label">Tasa de éxito</div><div class="metric-value" id="m-tasa">—</div><div class="metric-sub">historial</div></div>
+  <div class="metric"><div class="metric-label">Riesgo crítico</div><div class="metric-value" id="m-crit" style="color:#A32D2D;">0</div><div class="metric-sub">organismos</div></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs" id="main-tabs">
+  <div class="tab active" onclick="setTab('top10',this)">Top 10</div>
+  <div class="tab" onclick="setTab('empresas',this)">Mis empresas</div>
+  <div class="tab" onclick="setTab('simulador',this)">Simulador</div>
+  <div class="tab" onclick="setTab('historial',this)">Historial organismo</div>
+  <div class="tab" onclick="setTab('riesgo',this)">Radar de Riesgo</div>
+  <div class="tab" onclick="setTab('participaciones',this)">Participaciones</div>
+  <div class="tab" onclick="setTab('alertas',this)">Alertas</div>
+  <div class="tab" onclick="setTab('heatmap',this)">Mapa organismos</div>
+  <div class="tab" onclick="setTab('bases',this)">Bases PDF</div>
+</div>
+
+<!-- TOP 10 -->
+<div class="tab-content" id="tab-top10">
+  <div id="filters-container" class="filters"></div>
+  <div id="loading-msg" class="loading"><span class="spinner"></span>Cargando licitaciones...</div>
+  <div id="error-container"></div>
+  <div id="licit-list"></div>
+  <div id="detail-container"></div>
+</div>
+
+<!-- MIS EMPRESAS -->
+<div class="tab-content" id="tab-empresas" style="display:none;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;">
+    <div style="font-size:13px;font-weight:700;">Mis empresas</div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('modal-empresa',null)">+ Agregar empresa</button>
+  </div>
+  <div id="empresas-list"></div>
+</div>
+
+<!-- SIMULADOR -->
+<div class="tab-content" id="tab-simulador" style="display:none;">
+  <div class="panel">
+    <h3>Simulador de evaluación con IA</h3>
+    <div class="fg"><select id="sim-select" style="width:100%;"><option value="">— Selecciona licitación del Top 10 —</option></select></div>
+    <div id="sim-content" style="display:none;">
+      <div id="sim-data-preview"></div>
+      <div class="g2" id="sim-sliders" style="margin-bottom:.8rem;"></div>
+      <div class="fg"><label>Notas adicionales</label><textarea id="sim-notas" rows="2" placeholder="Experiencia previa con este organismo, ventajas competitivas..."></textarea></div>
+      <button class="btn btn-primary" onclick="runSimulation()">Simular evaluación ↗</button>
+      <div id="sim-result" style="margin-top:.8rem;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORIAL ORGANISMO -->
+<div class="tab-content" id="tab-historial" style="display:none;">
+  <div class="panel">
+    <h3>Historial de organismo comprador</h3>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:.8rem;">
+      <input type="text" id="org-input" placeholder="Ministerio, Municipalidad, Hospital..." style="flex:1;min-width:160px;padding:7px 9px;border-radius:8px;border:1px solid #e0e0d8;font-size:12px;"/>
+      <button class="btn btn-primary" onclick="buscarHistorial()">Analizar ↗</button>
+    </div>
+    <div id="historial-result"></div>
+  </div>
+</div>
+
+<!-- RADAR DE RIESGO -->
+<div class="tab-content" id="tab-riesgo" style="display:none;">
+  <div class="panel">
+    <h3>Radar de Riesgo · Índice de irregularidad</h3>
+    <p style="font-size:11px;color:#888;margin-bottom:.9rem;">Combina datos reales de la API con análisis IA para detectar irregularidades.</p>
+    <div class="inner-tabs">
+      <div class="inner-tab active" onclick="setRiskTab('org',this)">Por organismo</div>
+      <div class="inner-tab" onclick="setRiskTab('lic',this)">Por licitación</div>
+      <div class="inner-tab" onclick="setRiskTab('radar',this)">Mapa de riesgo</div>
+      <div class="inner-tab" onclick="setRiskTab('metodologia',this)">Metodología</div>
+    </div>
+    <div id="risk-tab-org">
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:.8rem;">
+        <input type="text" id="risk-org-input" placeholder="Nombre del organismo..." style="flex:1;min-width:160px;padding:7px 9px;border-radius:8px;border:1px solid #e0e0d8;font-size:12px;"/>
+        <button class="btn btn-primary" onclick="analizarRiesgoOrg()">Analizar ↗</button>
+      </div>
+      <div id="risk-org-result"></div>
+    </div>
+    <div id="risk-tab-lic" style="display:none;">
+      <div class="fg"><label>Nombre licitación</label><input id="rl-nombre" placeholder="Adquisición de..."/></div>
+      <div class="g2">
+        <div class="fg"><label>Organismo</label><input id="rl-org" placeholder="Nombre organismo"/></div>
+        <div class="fg"><label>Monto estimado CLP</label><input id="rl-monto" placeholder="15.000.000"/></div>
+      </div>
+      <div class="g3">
+        <div class="fg"><label>Días publicación→cierre</label><input type="number" id="rl-dias" placeholder="5"/></div>
+        <div class="fg"><label>Tipo licitación</label><select id="rl-tipo"><option value="">—</option><option value="L1">L1 &lt;100 UTM</option><option value="LE">LE 100-1000</option><option value="LP">LP 1000-2000</option><option value="LQ">LQ 2000-5000</option><option value="LR">LR &gt;5000</option><option value="TD">Trato Directo</option></select></div>
+        <div class="fg"><label>Nº reclamos organismo</label><input type="number" id="rl-reclamos" placeholder="0" min="0"/></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><label>Convocatoria</label><select id="rl-conv"><option value="1">Abierta</option><option value="0">Cerrada</option></select></div>
+        <div class="fg"><label>Nº oferentes</label><input type="number" id="rl-oferentes" placeholder="ej: 2" min="0"/></div>
+      </div>
+      <div class="fg"><label>Texto de bases (pega aquí)</label><textarea id="rl-bases" rows="4" placeholder="Criterios de evaluación, requisitos técnicos..."></textarea></div>
+      <div class="fg"><label>Proveedor adjudicado (si aplica)</label><input id="rl-adjud" placeholder="Opcional"/></div>
+      <button class="btn btn-primary" onclick="analizarRiesgoLic()">Calcular índice ↗</button>
+      <div id="risk-lic-result" style="margin-top:.8rem;"></div>
+    </div>
+    <div id="risk-tab-radar" style="display:none;">
+      <div id="risk-radar-empty" style="font-size:11px;color:#888;padding:.5rem 0;">Analiza organismos para poblar el mapa.</div>
+      <div id="risk-radar-grid" class="org-grid"></div>
+    </div>
+    <div id="risk-tab-metodologia" style="display:none;">
+      <div class="sec-title">Señales datos reales API (peso alto)</div>
+      <div class="signal-item"><div class="signal-icon sig-red">R</div><div><div style="font-size:11px;font-weight:700;">Reclamos registrados</div><div style="font-size:10px;color:#888;">Campo CantidadReclamos &gt; 0</div></div></div>
+      <div class="signal-item"><div class="signal-icon sig-red">D</div><div><div style="font-size:11px;font-weight:700;">Plazo corto (DiasCierreLicitacion ≤ 5)</div><div style="font-size:10px;color:#888;">Para LE/LP/LQ/LR</div></div></div>
+      <div class="signal-item"><div class="signal-icon sig-red">C</div><div><div style="font-size:11px;font-weight:700;">Convocatoria cerrada</div><div style="font-size:10px;color:#888;">TipoConvocatoria = 0</div></div></div>
+      <div class="signal-item"><div class="signal-icon sig-red">O</div><div><div style="font-size:11px;font-weight:700;">Pocos oferentes (≤ 2)</div><div style="font-size:10px;color:#888;">Adjudicacion.NumeroOferentes</div></div></div>
+      <div class="sep"></div>
+      <div class="sec-title">Señales IA (peso medio)</div>
+      <div class="signal-item"><div class="signal-icon sig-amber">B</div><div><div style="font-size:11px;font-weight:700;">Bases "a medida"</div><div style="font-size:10px;color:#888;">Marca específica, modelo exacto, experiencia previa en el organismo como requisito</div></div></div>
+      <div class="signal-item"><div class="signal-icon sig-amber">P</div><div><div style="font-size:11px;font-weight:700;">Ponderaciones inusuales</div><div style="font-size:10px;color:#888;">Técnica &gt;80% en commodities, precio &lt;20% en servicios estándar</div></div></div>
+      <div class="signal-item"><div class="signal-icon sig-amber">A</div><div><div style="font-size:11px;font-weight:700;">Adjudicación reiterada mismo proveedor</div><div style="font-size:10px;color:#888;">Mismo RUT gana 3+ veces consecutivas</div></div></div>
+      <div class="sep"></div>
+      <div style="font-size:10px;color:#888;line-height:1.6;"><b style="color:#3B6D11;">0–25 Bajo</b> · <b style="color:#BA7517;">26–50 Moderado</b> · <b style="color:#E24B4A;">51–75 Alto</b> · <b style="color:#791F1F;">76–100 Crítico</b> · Denuncias: <a href="https://www.contraloria.cl" target="_blank" style="color:#185FA5;">contraloria.cl</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- PARTICIPACIONES -->
+<div class="tab-content" id="tab-participaciones" style="display:none;">
+  <div class="panel">
+    <h3>Registrar participación</h3>
+    <div class="g2">
+      <div class="fg"><label>Código licitación</label><input id="part-codigo" placeholder="1234-56-LE25"/></div>
+      <div class="fg"><label>Nombre</label><input id="part-nombre" placeholder="Descripción breve"/></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><label>Organismo</label><input id="part-org"/></div>
+      <div class="fg"><label>Monto ofertado CLP</label><input id="part-monto" placeholder="5.000.000"/></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><label>Resultado</label><select id="part-resultado"><option value="pending">Pendiente</option><option value="won">Ganada</option><option value="lost">Perdida</option></select></div>
+      <div class="fg"><label>Puntaje obtenido</label><input type="number" id="part-puntaje" placeholder="85" min="0" max="100"/></div>
+    </div>
+    <div class="fg"><label>Notas</label><textarea id="part-notas" rows="2" placeholder="Perdí por precio, ganador ofertó 20% menos..."></textarea></div>
+    <button class="btn btn-primary" onclick="saveParticipacion()">Registrar</button>
+  </div>
+  <div id="participaciones-list"></div>
+  <div id="aprendizaje-ia"></div>
+</div>
+
+<!-- ALERTAS -->
+<div class="tab-content" id="tab-alertas" style="display:none;">
+  <div class="panel">
+    <h3>Configurar alerta</h3>
+    <div class="g2">
+      <div class="fg"><label>Palabra clave</label><input id="alerta-kw" placeholder="soporte TI, consultoría..."/></div>
+      <div class="fg"><label>Score mínimo (%)</label><input type="number" id="alerta-score" value="65" min="0" max="100"/></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><label>Monto mínimo CLP</label><input id="alerta-mmin" placeholder="0"/></div>
+      <div class="fg"><label>Monto máximo CLP</label><input id="alerta-mmax" placeholder="50.000.000"/></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveAlerta()">Agregar alerta</button>
+  </div>
+  <div id="alertas-list"></div>
+  <div id="alertas-triggered"></div>
+</div>
+
+<!-- HEATMAP -->
+<div class="tab-content" id="tab-heatmap" style="display:none;">
+  <div class="panel">
+    <h3>Mapa de calor · organismos compradores</h3>
+    <p style="font-size:11px;color:#888;margin-bottom:.7rem;">Afinidad con empresa activa. Haz clic para analizar riesgo.</p>
+    <div id="heatmap-container" class="loading">Genera el barrido diario primero.</div>
+  </div>
+</div>
+
+<!-- BASES PDF -->
+<div class="tab-content" id="tab-bases" style="display:none;">
+  <div class="panel">
+    <h3>Analizar bases de licitación (PDF)</h3>
+    <p style="font-size:11px;color:#888;margin-bottom:.8rem;">Extrae texto del PDF y analiza con IA. Sin costo de visión — ~$0.003 por análisis.</p>
+    <div class="pdf-drop" onclick="document.getElementById('pdf-input').click()">
+      <p style="font-size:13px;color:#888;">Clic o arrastra el PDF aquí</p>
+      <p style="font-size:10px;color:#aaa;margin-top:4px;">PDF · máx. 10MB</p>
+    </div>
+    <input type="file" id="pdf-input" accept=".pdf" style="display:none;" onchange="handlePDF(this)"/>
+    <div id="pdf-result"></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<!-- MODAL EMPRESA -->
+<div class="modal-overlay" id="modal-empresa">
+  <div class="modal">
+    <h2 id="modal-empresa-title">Nueva empresa</h2>
+    <input type="hidden" id="empresa-edit-id"/>
+    <div class="g2">
+      <div class="fg"><label>Nombre empresa</label><input id="e-nombre" placeholder="OUTRO SpA"/></div>
+      <div class="fg"><label>RUT</label><input id="e-rut" placeholder="76.146.139-7"/></div>
+    </div>
+    <div class="fg"><label>Descripción breve (la IA generará keywords)</label><textarea id="e-desc" rows="2" placeholder="Productora audiovisual, eventos, comunicaciones, también trabaja con SAG y sector salud..."></textarea></div>
+    <div class="g2">
+      <div class="fg"><label>Años de experiencia</label><input type="number" id="e-exp" value="5" min="0"/></div>
+      <div class="fg"><label>Monto máximo licitación CLP</label><input id="e-montomax" placeholder="50.000.000"/></div>
+    </div>
+    <div class="fg">
+      <label>Código(s) SII (opcional, separados por coma)</label>
+      <input id="e-sii" placeholder="ej: 9000 Actividades artísticas, 8530 Educación..."/>
+      <div style="font-size:10px;color:#aaa;margin-top:2px;">Referencia: <a href="https://www.sii.cl/estadisticas/rubro/PUB_Rub_Sub_Act.xlsx" target="_blank" style="color:#185FA5;">ver códigos SII →</a></div>
+    </div>
+    <div class="fg">
+      <label>Rubro principal</label>
+      <select id="e-rubro">
+        <option value="comunicaciones">Comunicaciones / Producción audiovisual</option>
+        <option value="ti">Tecnologías de la información</option>
+        <option value="servicios">Servicios profesionales / Consultoría</option>
+        <option value="suministros">Suministros / Insumos</option>
+        <option value="industrial">Insumos industriales</option>
+        <option value="salud">Salud / Equipamiento médico</option>
+        <option value="educacion">Educación / Capacitación</option>
+        <option value="construccion">Construcción / Infraestructura</option>
+        <option value="agri">Agrícola / Forestal</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Subrubros (selecciona los que apliquen)</label>
+      <div id="subrubros-selector" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;"></div>
+    </div>
+    <div class="fg"><label>Keywords personalizadas (separadas por coma)</label><input id="e-keywords" placeholder="video institucional, producción audiovisual, SAG, capacitación..."/></div>
+    <div class="fg">
+      <label>Color identificador</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="color-selector">
+        <div onclick="selectColor('#185FA5')" style="width:22px;height:22px;border-radius:50%;background:#185FA5;cursor:pointer;border:2px solid transparent;" data-color="#185FA5"></div>
+        <div onclick="selectColor('#3B6D11')" style="width:22px;height:22px;border-radius:50%;background:#3B6D11;cursor:pointer;border:2px solid transparent;" data-color="#3B6D11"></div>
+        <div onclick="selectColor('#854F0B')" style="width:22px;height:22px;border-radius:50%;background:#854F0B;cursor:pointer;border:2px solid transparent;" data-color="#854F0B"></div>
+        <div onclick="selectColor('#A32D2D')" style="width:22px;height:22px;border-radius:50%;background:#A32D2D;cursor:pointer;border:2px solid transparent;" data-color="#A32D2D"></div>
+        <div onclick="selectColor('#5046AD')" style="width:22px;height:22px;border-radius:50%;background:#5046AD;cursor:pointer;border:2px solid transparent;" data-color="#5046AD"></div>
+        <div onclick="selectColor('#085041')" style="width:22px;height:22px;border-radius:50%;background:#085041;cursor:pointer;border:2px solid transparent;" data-color="#085041"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:7px;margin-top:1rem;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="saveEmpresa()">Guardar empresa</button>
+      <button class="btn" id="btn-gen-kw" onclick="generarKeywordsIA()">✨ Generar keywords con IA</button>
+      <button class="btn" onclick="closeModal('modal-empresa')">Cancelar</button>
+    </div>
+    <div id="modal-empresa-msg" style="margin-top:.5rem;font-size:11px;"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIG & STATE
+// ═══════════════════════════════════════════════════════
+const MP_TICKET = 'F8537A18-6766-4DEF-9E59-426B4FEE2844';
+let ANTHROPIC_KEY = localStorage.getItem('licit_api_key') || '';
+
+// EMPRESAS por defecto (OUTRO y BRAUER pre-cargadas)
+const DEFAULT_EMPRESAS = [
+  {
+    id: 'outro',
+    nombre: 'OUTRO SpA',
+    rut: '76.146.139-7',
+    exp: 7,
+    montoMax: 80000000,
+    color: '#185FA5',
+    rubro: 'comunicaciones',
+    subrubros: ['audiovisual','eventos','capacitacion','agri','salud'],
+    keywords: 'video institucional,producción audiovisual,eventos culturales,difusión,spot publicitario,fotografía,capacitación audiovisual,SAG,MINSAL,producción contenidos,comunicación estratégica,radio,televisión',
+    sii: '9000,8530',
+    desc: 'Productora audiovisual, eventos, comunicaciones. Trabaja también con SAG (área agrícola) y sector salud.'
+  },
+  {
+    id: 'brauer',
+    nombre: 'BRAUER SpA',
+    rut: '76.731.190-7',
+    exp: 5,
+    montoMax: 50000000,
+    color: '#5046AD',
+    rubro: 'industrial',
+    subrubros: ['insumos','equipamiento','ferreteria'],
+    keywords: 'insumos industriales,equipamiento industrial,materiales,herramientas,suministros,repuestos,implementos,ferretería industrial,elementos de protección personal,EPP',
+    sii: '4669',
+    desc: 'Venta de insumos industriales, equipamiento y suministros para industria.'
+  }
+];
+
+let empresas = JSON.parse(localStorage.getItem('licit_empresas') || 'null') || DEFAULT_EMPRESAS;
+let activeEmpresaId = localStorage.getItem('licit_active_empresa') || empresas[0].id;
+let allLics = [], currentFilter = 'todos', selectedLicit = null;
+let participaciones = JSON.parse(localStorage.getItem('licit_part') || '[]');
+let alertas = JSON.parse(localStorage.getItem('licit_alerts') || '[]');
+let radarData = JSON.parse(localStorage.getItem('licit_radar') || '[]');
+let selectedColor = '#185FA5';
+
+// Subrubros disponibles con label, color y keywords
+const SUBRUBROS_DB = {
+  audiovisual:   {label:'Audiovisual',      color:'blue',   kw:'video,audiovisual,producción,cine,fotografía'},
+  eventos:       {label:'Eventos',           color:'amber',  kw:'eventos,actividades,concierto,recital,cultural'},
+  capacitacion:  {label:'Capacitación',      color:'blue',   kw:'capacitación,formación,taller,curso,charla'},
+  comunicacion:  {label:'Comunicación',      color:'blue',   kw:'comunicación,difusión,publicidad,prensa,marketing'},
+  agri:          {label:'Agrícola / SAG',    color:'agri',   kw:'SAG,agrícola,forestal,fitosanitario,semilla,riego,campo'},
+  salud:         {label:'Salud / MINSAL',    color:'salud',  kw:'salud,médico,hospital,clínica,equipamiento médico,MINSAL,sanitario'},
+  insumos:       {label:'Insumos',           color:'industrial', kw:'insumos,materiales,suministros,consumibles'},
+  equipamiento:  {label:'Equipamiento',      color:'industrial', kw:'equipamiento,máquinas,equipo,implementos'},
+  ferreteria:    {label:'Ferretería/EPP',    color:'industrial', kw:'ferretería,herramientas,EPP,protección personal'},
+  ti:            {label:'TI / Software',     color:'blue',   kw:'software,sistema,TI,tecnología,informática,digital'},
+  consultoria:   {label:'Consultoría',       color:'blue',   kw:'consultoría,asesoría,estudio,diagnóstico'},
+  construccion:  {label:'Construcción',      color:'amber',  kw:'construcción,obras,infraestructura,edificación'},
+  educacion:     {label:'Educación',         color:'blue',   kw:'educación,aprendizaje,escolar,docente'},
+  logistica:     {label:'Logística',         color:'amber',  kw:'transporte,logística,distribución,despacho'},
+  aseo:          {label:'Aseo / Limpieza',   color:'blue',   kw:'aseo,limpieza,mantención,higiene'},
+};
+
+function getActiveEmpresa() { return empresas.find(e=>e.id===activeEmpresaId) || empresas[0]; }
+
+// ═══════════════════════════════════════════════════════
+// API KEY
+// ═══════════════════════════════════════════════════════
+function saveApiKey() {
+  const k = document.getElementById('anthropic-key').value.trim();
+  if (!k) return;
+  ANTHROPIC_KEY = k; localStorage.setItem('licit_api_key', k);
+  document.getElementById('setup-bar').className = 'setup-bar setup-ok';
+  document.getElementById('setup-bar').innerHTML = '<span>✓ API Key activa · Análisis IA listo · ~$0.001–0.005 USD por consulta</span><button class="btn btn-danger btn-sm" onclick="localStorage.removeItem(\'licit_api_key\');location.reload()">Cambiar</button>';
+}
+if (ANTHROPIC_KEY) {
+  document.getElementById('setup-bar').className = 'setup-bar setup-ok';
+  document.getElementById('setup-bar').innerHTML = '<span>✓ API Key activa · Análisis IA listo</span><button class="btn btn-danger btn-sm" onclick="localStorage.removeItem(\'licit_api_key\');location.reload()">Cambiar</button>';
+}
+
+// ═══════════════════════════════════════════════════════
+// AI
+// ═══════════════════════════════════════════════════════
+async function callAI(prompt, maxTokens=380) {
+  if (!ANTHROPIC_KEY) return '⚠ Ingresa tu API Key de Anthropic en la barra superior.';
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':ANTHROPIC_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
+  });
+  const d = await r.json();
+  if (d.error) throw new Error(d.error.message);
+  return d.content?.[0]?.text || '';
+}
+
+async function extractPDFText(file) {
+  return new Promise((resolve,reject) => {
+    const reader = new FileReader();
+    reader.onload = async(e) => {
+      try {
+        const pdf = await pdfjsLib.getDocument({data:new Uint8Array(e.target.result)}).promise;
+        let text = '';
+        for (let i=1;i<=Math.min(pdf.numPages,15);i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(x=>x.str).join(' ')+'\n';
+        }
+        resolve(text.trim().substring(0,6000));
+      } catch(err){reject(err);}
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// EMPRESAS UI
+// ═══════════════════════════════════════════════════════
+const EMPRESA_COLORS = ['#185FA5','#3B6D11','#854F0B','#A32D2D','#5046AD','#085041'];
+
+function selectColor(c) {
+  selectedColor = c;
+  document.querySelectorAll('#color-selector div').forEach(d => {
+    d.style.border = d.dataset.color===c ? '2px solid #1a1a18' : '2px solid transparent';
+  });
+}
+
+function buildSubrubrosSelector(selected=[]) {
+  const c = document.getElementById('subrubros-selector');
+  c.innerHTML = Object.entries(SUBRUBROS_DB).map(([k,v]) => {
+    const on = selected.includes(k);
+    return `<span class="subrubro-tag ${v.color} ${on?'selected':''}" style="${on?'outline:2px solid #1a1a18;':''}" onclick="toggleSubrubro(this,'${k}')">${v.label}</span>`;
+  }).join('');
+}
+
+function toggleSubrubro(el, key) {
+  el.style.outline = el.style.outline ? '' : '2px solid #1a1a18';
+}
+
+function getSelectedSubrubros() {
+  return [...document.querySelectorAll('#subrubros-selector .subrubro-tag')]
+    .filter(el=>el.style.outline).map(el=>el.onclick.toString().match(/'([^']+)'/)?.[1]).filter(Boolean);
+}
+
+function openModal(id, empresaId) {
+  document.getElementById(id).classList.add('open');
+  if (id==='modal-empresa') {
+    if (empresaId) {
+      const e = empresas.find(x=>x.id===empresaId);
+      if (e) {
+        document.getElementById('modal-empresa-title').textContent = 'Editar empresa';
+        document.getElementById('empresa-edit-id').value = e.id;
+        document.getElementById('e-nombre').value = e.nombre||'';
+        document.getElementById('e-rut').value = e.rut||'';
+        document.getElementById('e-desc').value = e.desc||'';
+        document.getElementById('e-exp').value = e.exp||5;
+        document.getElementById('e-montomax').value = e.montoMax||50000000;
+        document.getElementById('e-sii').value = e.sii||'';
+        document.getElementById('e-rubro').value = e.rubro||'comunicaciones';
+        document.getElementById('e-keywords').value = e.keywords||'';
+        selectedColor = e.color||'#185FA5';
+        selectColor(selectedColor);
+        buildSubrubrosSelector(e.subrubros||[]);
+      }
+    } else {
+      document.getElementById('modal-empresa-title').textContent = 'Nueva empresa';
+      document.getElementById('empresa-edit-id').value = '';
+      ['e-nombre','e-rut','e-desc','e-sii','e-keywords'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('e-exp').value=5;
+      document.getElementById('e-montomax').value='50000000';
+      selectedColor = EMPRESA_COLORS[empresas.length % EMPRESA_COLORS.length];
+      selectColor(selectedColor);
+      buildSubrubrosSelector([]);
+    }
+    document.getElementById('modal-empresa-msg').textContent='';
+  }
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function saveEmpresa() {
+  const nombre = document.getElementById('e-nombre').value.trim();
+  if (!nombre) { document.getElementById('modal-empresa-msg').innerHTML='<span style="color:#A32D2D;">Ingresa el nombre.</span>'; return; }
+  const editId = document.getElementById('empresa-edit-id').value;
+  const subrubros = getSelectedSubrubros();
+  const data = {
+    id: editId || ('emp_'+Date.now()),
+    nombre, rut:document.getElementById('e-rut').value.trim(),
+    desc:document.getElementById('e-desc').value.trim(),
+    exp:parseInt(document.getElementById('e-exp').value)||5,
+    montoMax:parseFloat((document.getElementById('e-montomax').value||'50000000').replace(/\./g,''))||50000000,
+    sii:document.getElementById('e-sii').value.trim(),
+    rubro:document.getElementById('e-rubro').value,
+    subrubros, keywords:document.getElementById('e-keywords').value.trim(),
+    color:selectedColor
+  };
+  if (editId) { const idx=empresas.findIndex(e=>e.id===editId); if(idx>=0) empresas[idx]=data; }
+  else empresas.push(data);
+  localStorage.setItem('licit_empresas', JSON.stringify(empresas));
+  closeModal('modal-empresa');
+  renderEmpresaSelector();
+  renderEmpresasList();
+  if (!editId) { activeEmpresaId=data.id; switchEmpresa(data.id); }
+}
+
+async function generarKeywordsIA() {
+  const desc = document.getElementById('e-desc').value.trim();
+  const rubro = document.getElementById('e-rubro').value;
+  const sii = document.getElementById('e-sii').value.trim();
+  if (!desc) { document.getElementById('modal-empresa-msg').innerHTML='<span style="color:#A32D2D;">Escribe una descripción primero.</span>'; return; }
+  document.getElementById('btn-gen-kw').textContent='Generando...';
+  document.getElementById('btn-gen-kw').disabled=true;
+  try {
+    const prompt=`Empresa chilena: "${desc}". Rubro:${rubro}. Códigos SII:${sii||'no indicado'}.
+Genera 15-20 palabras clave cortas y precisas para encontrar licitaciones relevantes en Mercado Público Chile (mercadopublico.cl). Las keywords deben ser términos que aparecen en nombres de licitaciones. Responde SOLO con las keywords separadas por coma, sin explicación.`;
+    const txt = await callAI(prompt, 200);
+    document.getElementById('e-keywords').value = txt.trim();
+    document.getElementById('modal-empresa-msg').innerHTML='<span style="color:#3B6D11;">✓ Keywords generadas con IA</span>';
+  } catch(e) {
+    document.getElementById('modal-empresa-msg').innerHTML=`<span style="color:#A32D2D;">Error: ${e.message}</span>`;
+  }
+  document.getElementById('btn-gen-kw').textContent='✨ Generar keywords con IA';
+  document.getElementById('btn-gen-kw').disabled=false;
+}
+
+function renderEmpresaSelector() {
+  const sel = document.getElementById('empresa-select');
+  sel.innerHTML = empresas.map(e=>`<option value="${e.id}">${e.nombre}</option>`).join('');
+  sel.value = activeEmpresaId;
+  const emp = getActiveEmpresa();
+  document.getElementById('empresa-dot').style.background = emp.color;
+}
+
+function switchEmpresa(id) {
+  activeEmpresaId = id;
+  localStorage.setItem('licit_active_empresa', id);
+  const emp = getActiveEmpresa();
+  document.getElementById('empresa-dot').style.background = emp.color;
+  renderFilters();
+  if (allLics.length) { processLics(allLics.map(l=>({...l,_score:undefined,_rubro:undefined}))); }
+}
+
+function renderEmpresasList() {
+  const c = document.getElementById('empresas-list');
+  c.innerHTML = empresas.map(e => {
+    const isActive = e.id === activeEmpresaId;
+    const srTags = (e.subrubros||[]).map(s=>{
+      const sr=SUBRUBROS_DB[s]||{label:s,color:'blue'};
+      return `<span class="subrubro-tag ${sr.color}">${sr.label}</span>`;
+    }).join('');
+    return `<div class="empresa-card ${isActive?'active-empresa':''}" style="padding-left:1.2rem;">
+      <div class="empresa-color-strip" style="background:${e.color};"></div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;">${e.nombre} ${isActive?'<span style="font-size:10px;color:#185FA5;font-weight:400;">● activa</span>':''}</div>
+          <div style="font-size:10px;color:#888;">RUT: ${e.rut||'—'} · Exp: ${e.exp||5} años · Máx: $${((e.montoMax||50000000)/1e6).toFixed(0)}M</div>
+        </div>
+        <div style="display:flex;gap:5px;flex-shrink:0;">
+          ${!isActive?`<button class="btn btn-primary btn-sm" onclick="switchEmpresa('${e.id}');setTab('top10',document.querySelectorAll('#main-tabs .tab')[0])">Activar</button>`:''}
+          <button class="btn btn-sm" onclick="openModal('modal-empresa','${e.id}')">Editar</button>
+          ${empresas.length>1?`<button class="btn btn-danger btn-sm" onclick="deleteEmpresa('${e.id}')">✕</button>`:''}
+        </div>
+      </div>
+      <div style="font-size:11px;color:#888;margin-bottom:5px;">${e.desc||''}</div>
+      <div style="margin-bottom:4px;">${srTags}</div>
+      <div style="font-size:10px;color:#aaa;">Keywords: ${(e.keywords||'').substring(0,80)}${(e.keywords||'').length>80?'...':''}</div>
+    </div>`;
+  }).join('');
+}
+
+function deleteEmpresa(id) {
+  if (!confirm('¿Eliminar empresa?')) return;
+  empresas = empresas.filter(e=>e.id!==id);
+  localStorage.setItem('licit_empresas',JSON.stringify(empresas));
+  if (activeEmpresaId===id) { activeEmpresaId=empresas[0].id; localStorage.setItem('licit_active_empresa',activeEmpresaId); }
+  renderEmpresaSelector(); renderEmpresasList();
+}
+
+// ═══════════════════════════════════════════════════════
+// SCORING & DETECTION
+// ═══════════════════════════════════════════════════════
+function scoreLicForEmpresa(l, emp) {
+  let s = 40;
+  const nombre = (l.Nombre||'').toLowerCase();
+  // Keywords de la empresa activa
+  const kws = (emp.keywords||'').split(',').map(k=>k.trim().toLowerCase()).filter(Boolean);
+  const kwMatch = kws.filter(k=>k&&nombre.includes(k)).length;
+  s += Math.min(25, kwMatch * 8);
+  // Subrubros
+  const subrubros = emp.subrubros || [];
+  subrubros.forEach(sr => {
+    const srDef = SUBRUBROS_DB[sr];
+    if (srDef) {
+      const srKws = srDef.kw.split(',').map(k=>k.trim().toLowerCase());
+      if (srKws.some(k=>nombre.includes(k))) s += 12;
+    }
+  });
+  // Monto
+  const m = parseFloat(l.MontoEstimado||0);
+  const mx = emp.montoMax||50000000;
+  if (m>0&&m<=mx) s+=8; else if(m>mx) s-=8;
+  // Experiencia
+  s += Math.min(8, parseInt(emp.exp||5));
+  // Penalizaciones
+  if (parseInt(l.CantidadReclamos||0)>0) s-=8;
+  if (l.TipoConvocatoria===0) s-=6;
+  return Math.min(96, Math.max(18, s+Math.floor(Math.random()*6-3)));
+}
+
+function detectSubrubro(nombre, emp) {
+  const n = (nombre||'').toLowerCase();
+  const subrubros = emp.subrubros||[];
+  for (const sr of subrubros) {
+    const srDef = SUBRUBROS_DB[sr];
+    if (srDef) {
+      const kws = srDef.kw.split(',').map(k=>k.trim().toLowerCase());
+      if (kws.some(k=>n.includes(k))) return sr;
+    }
+  }
+  return null;
+}
+
+function calcRiesgoInline(l) {
+  let r=0, signals=[];
+  const dias=parseInt(l.DiasCierreLicitacion||30);
+  const reclamos=parseInt(l.CantidadReclamos||0);
+  const tipo=l.Tipo||'';
+  const conv=l.TipoConvocatoria;
+  const oferentes=parseInt(l.Adjudicacion?.NumeroOferentes||0);
+  if(reclamos>0){r+=Math.min(30,reclamos*10);signals.push(`${reclamos} reclamo(s)`);}
+  if(dias<=5&&['LE','LP','LQ','LR'].includes(tipo)){r+=25;signals.push(`Plazo ${dias}d`);}
+  else if(dias<=3){r+=30;signals.push(`Plazo crítico ${dias}d`);}
+  if(conv===0){r+=20;signals.push('Conv. cerrada');}
+  if(oferentes>0&&oferentes<=2){r+=15;signals.push(`${oferentes} oferente(s)`);}
+  if(parseInt(l.ExtensionPlazo||0)===1){r+=10;signals.push('Extendida');}
+  if(parseInt(l.TomaRazon||0)===1)r-=10;
+  return {score:Math.min(100,Math.max(0,r)),signals};
+}
+
+function checkAlerts(l){
+  return alertas.filter(a=>{
+    const kw=!a.kw||(l.Nombre||'').toLowerCase().includes(a.kw.toLowerCase());
+    const sc=l._score>=(a.score||0);
+    const m=parseFloat(l.MontoEstimado||0);
+    return kw&&sc&&(!a.mmin||m>=a.mmin)&&(!a.mmax||m<=a.mmax);
+  });
+}
+
+function riskColor(s){return s>=76?'#A32D2D':s>=51?'#E24B4A':s>=26?'#BA7517':'#3B6D11';}
+function riskBg(s){return s>=76?'#F7C1C1':s>=51?'#FAEEDA':s>=26?'#FAC775':'#EAF3DE';}
+function riskLabel(s){return s>=76?'Riesgo crítico':s>=51?'Riesgo alto':s>=26?'Riesgo moderado':'Riesgo bajo';}
+function buildGauge(score){
+  const r=44,cx=65,cy=60;
+  const ax=cx+r*Math.cos(Math.PI),ay=cy+r*Math.sin(Math.PI);
+  const bx=cx+r*Math.cos(2*Math.PI),by=cy+r*Math.sin(2*Math.PI);
+  const ang=Math.PI+(score/100)*Math.PI;
+  const px=cx+r*Math.cos(ang),py=cy+r*Math.sin(ang);
+  const col=riskColor(score);
+  return `<svg width="130" height="74" viewBox="0 0 130 74"><path d="M${ax},${ay} A${r},${r} 0 0,1 ${bx},${by}" fill="none" stroke="#e5e5e0" stroke-width="8" stroke-linecap="round"/><path d="M${ax},${ay} A${r},${r} 0 0,1 ${px},${py}" fill="none" stroke="${col}" stroke-width="8" stroke-linecap="round"/><text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="18" font-weight="700" fill="${col}">${score}</text><text x="${cx}" y="${cy+12}" text-anchor="middle" font-size="9" fill="#888">/100</text></svg>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// FILTERS DINÁMICOS
+// ═══════════════════════════════════════════════════════
+function renderFilters() {
+  const emp = getActiveEmpresa();
+  const subrubros = emp.subrubros||[];
+  const c = document.getElementById('filters-container');
+  let chips = `<span class="chip active" onclick="setFilter(this,'todos')">Todos</span>`;
+  subrubros.forEach(sr=>{
+    const srDef=SUBRUBROS_DB[sr]||{label:sr,color:'blue'};
+    chips+=`<span class="chip ${srDef.color==='agri'?'agri-chip':srDef.color==='salud'?'salud-chip':srDef.color==='industrial'?'industrial-chip':''}" onclick="setFilter(this,'${sr}')">${srDef.label}</span>`;
+  });
+  chips+=`<span class="chip" onclick="setFilter(this,'alerts')">Con alerta</span>`;
+  chips+=`<span class="chip" onclick="setFilter(this,'riesgo')">Riesgo detectado</span>`;
+  c.innerHTML = chips;
+}
+
+// ═══════════════════════════════════════════════════════
+// FETCH LICITACIONES
+// ═══════════════════════════════════════════════════════
+async function fetchLicitaciones() {
+  document.getElementById('loading-msg').style.display='block';
+  document.getElementById('licit-list').innerHTML='';
+  document.getElementById('error-container').innerHTML='';
+  document.getElementById('api-status').textContent='Conectando...';
+  document.getElementById('api-status').className='badge';
+  const t=new Date();
+  const ds=String(t.getDate()).padStart(2,'0')+String(t.getMonth()+1).padStart(2,'0')+t.getFullYear();
+  try {
+    const r=await fetch(`https://api.mercadopublico.cl/servicios/v1/Publico/licitaciones.json?fecha=${ds}&ticket=${MP_TICKET}`);
+    if(!r.ok)throw new Error();
+    const d=await r.json();
+    processLics(d.Listado||[]);
+    document.getElementById('api-status').textContent='API en vivo';
+    document.getElementById('api-status').className='badge badge-live';
+  } catch(e) {
+    useDemoData();
+    document.getElementById('api-status').textContent='Modo demo';
+    document.getElementById('api-status').className='badge badge-demo';
+  }
+  document.getElementById('loading-msg').style.display='none';
+}
+
+function useDemoData() {
+  const d=[
+    {CodigoLicitacion:'2345-67-LE25',Nombre:'Producción audiovisual institucional y difusión digital',NombreOrganismo:'Ministerio de Educación',FechaCierre:'2026-04-05T17:00:00',MontoEstimado:18500000,Tipo:'LE',DiasCierreLicitacion:12,CantidadReclamos:0,TipoConvocatoria:1,TomaRazon:0,ExtensionPlazo:0,Adjudicacion:{NumeroOferentes:0}},
+    {CodigoLicitacion:'1234-89-LP25',Nombre:'Servicio de capacitación en tecnologías agrícolas SAG',NombreOrganismo:'SAG Región Metropolitana',FechaCierre:'2026-04-08T15:00:00',MontoEstimado:9200000,Tipo:'LE',DiasCierreLicitacion:18,CantidadReclamos:0,TipoConvocatoria:1,TomaRazon:0,ExtensionPlazo:0,Adjudicacion:{NumeroOferentes:0}},
+    {CodigoLicitacion:'5678-12-LE25',Nombre:'Suministro insumos industriales y equipamiento taller',NombreOrganismo:'ENAP Refinería',FechaCierre:'2026-04-03T17:00:00',MontoEstimado:34000000,Tipo:'LP',DiasCierreLicitacion:20,CantidadReclamos:0,TipoConvocatoria:1,TomaRazon:0,ExtensionPlazo:0,Adjudicacion:{NumeroOferentes:0}},
+    {CodigoLicitacion:'9012-34-LP25',Nombre:'Producción de videos educativos e-learning MINSAL',NombreOrganismo:'MINSAL',FechaCierre:'2026-04-12T12:00:00',MontoEstimado:7800000,Tipo:'LE',DiasCierreLicitacion:22,CantidadReclamos:0,TipoConvocatoria:1,TomaRazon:0,ExtensionPlazo:0,Adjudicacion:{NumeroOferentes:0}},
+    {CodigoLicitacion:'3456-78-L125',Nombre:'Materiales de ferretería industrial y EPP para planta',NombreOrganismo:'Codelco Andina',FechaCierre:'2026-04-10T17:00:00',MontoEstimado:45000000,Tipo:'LP',DiasCierreLicitacion:25,CantidadReclamos:0,TipoConvocatoria:1,TomaRazon:1,ExtensionPlazo:0,Adjudicacion:{NumeroOferentes:0}},
+    {CodigoLicitacion:'7890-23-LE25',Nombre:'Realización de evento cultural y artístico regional',NombreOrganismo:'Consejo de la Cultura Valparaíso',FechaCierre:'2026-03-30T15:00:00',MontoEstimado:12000000,Tipo:'LE',DiasCierreLicitacion:3,CantidadReclamos:2,TipoConvocatoria:0,TomaRazon:0,ExtensionPlazo:0,Adjudicacion:{NumeroOferentes:1}},
+    {CodigoLicitacion:'2468-90-LP25',Nombre:'Adquisición insumos médicos y materiales clínica',NombreOrganismo:'Hospital San Juan de Dios',FechaCierre:'2026-04-15T17:00:00',MontoEstimado:28000000,Tipo:'LP',DiasCierreLicitacion:28,CantidadReclamos:0,TipoConvocatoria:1,TomaRazon:0,ExtensionPlazo:0,Adjudicacion:{NumeroOferentes:0}},
+    {CodigoLicitacion:'1357-46-LE25',Nombre:'Servicio fotografía y registro gráfico campaña comunicacional',NombreOrganismo:'SEREMI Agricultura',FechaCierre:'2026-04-06T17:00:00',MontoEstimado:4800000,Tipo:'LE',DiasCierreLicitacion:14,CantidadReclamos:0,TipoConvocatoria:1,TomaRazon:0,ExtensionPlazo:0,Adjudicacion:{NumeroOferentes:0}},
+    {CodigoLicitacion:'8024-57-LP25',Nombre:'Suministro herramientas y repuestos industriales',NombreOrganismo:'Metro S.A.',FechaCierre:'2026-04-18T17:00:00',MontoEstimado:22000000,Tipo:'LE',DiasCierreLicitacion:30,CantidadReclamos:0,TipoConvocatoria:1,TomaRazon:0,ExtensionPlazo:0,Adjudicacion:{NumeroOferentes:0}},
+    {CodigoLicitacion:'6913-80-LE25',Nombre:'Taller formación fitosanitaria y manejo de plagas SAG',NombreOrganismo:'SAG Región del Maule',FechaCierre:'2026-04-09T17:00:00',MontoEstimado:6500000,Tipo:'LE',DiasCierreLicitacion:16,CantidadReclamos:0,TipoConvocatoria:1,TomaRazon:0,ExtensionPlazo:0,Adjudicacion:{NumeroOferentes:0}},
+  ];
+  processLics(d);
+  document.getElementById('error-container').innerHTML='<div style="background:#FAEEDA;border:1px solid #FAC775;border-radius:8px;padding:.6rem .8rem;font-size:11px;color:#633806;margin-bottom:.8rem;">Datos de demostración. Registra tu ticket en <a href="https://api.mercadopublico.cl" target="_blank" style="color:#633806;font-weight:700;">api.mercadopublico.cl</a> para datos en tiempo real.</div>';
+}
+
+function processLics(rawLics) {
+  const emp = getActiveEmpresa();
+  allLics = rawLics.map(l => {
+    const ri = calcRiesgoInline(l);
+    const score = scoreLicForEmpresa(l, emp);
+    const subrubro = detectSubrubro(l.Nombre, emp);
+    return {...l, _score:score, _subrubro:subrubro, _riesgoInline:ri.score, _riesgoSignals:ri.signals, _alerts:checkAlerts({...l,_score:score}), _riskScore:radarData.find(r=>r.org===l.NombreOrganismo)?.score||null};
+  }).sort((a,b)=>b._score-a._score).slice(0,10);
+
+  const relevantes = allLics.filter(l=>l._score>=55).length;
+  const conReclamos = allLics.filter(l=>parseInt(l.CantidadReclamos||0)>0).length;
+  document.getElementById('m-total').textContent = rawLics.length||10;
+  document.getElementById('m-oport').textContent = relevantes;
+  document.getElementById('m-max').textContent = (allLics[0]?._score||0)+'%';
+  document.getElementById('m-reclamos').textContent = conReclamos;
+  document.getElementById('m-alerts').textContent = alertas.length;
+  renderList(); populateSimSelect(); renderHeatmap(); checkAlertas();
+}
+
+function renderList() {
+  const emp = getActiveEmpresa();
+  const c = document.getElementById('licit-list');
+  let filt = allLics;
+  if (currentFilter==='alerts') filt=allLics.filter(l=>l._alerts&&l._alerts.length>0);
+  else if (currentFilter==='riesgo') filt=allLics.filter(l=>l._riesgoInline>20);
+  else if (currentFilter!=='todos') filt=allLics.filter(l=>l._subrubro===currentFilter);
+
+  c.innerHTML = filt.map((l,i)=>{
+    const s=l._score, cls=s>=70?'sh':s>=50?'sm':'sl';
+    const m=parseFloat(l.MontoEstimado||0);
+    const ms=m>0?'$'+(m/1e6).toFixed(1)+'M':'Sin monto';
+    const ci=l.FechaCierre?new Date(l.FechaCierre).toLocaleDateString('es-CL',{day:'2-digit',month:'short'}):'—';
+    const diasTag=parseInt(l.DiasCierreLicitacion||0)<=5&&parseInt(l.DiasCierreLicitacion||0)>0?`<span class="tag tag-risk">${l.DiasCierreLicitacion}d cierre</span>`:'';
+    const recTag=parseInt(l.CantidadReclamos||0)>0?`<span class="tag tag-risk">${l.CantidadReclamos} reclamo(s)</span>`:'';
+    const convTag=l.TipoConvocatoria===0?`<span class="tag tag-risk">Cerrada</span>`:'';
+    const tomaTag=l.TomaRazon===1?`<span class="tag tag-ok">Contraloría</span>`:'';
+    const tipoTag=l.Tipo?`<span class="tag tag-gray">${l.Tipo}</span>`:'';
+    const alertTag=l._alerts&&l._alerts.length?`<span class="tag tag-alert">Alerta</span>`:'';
+    const ri=l._riesgoInline||0;
+    const riTag=ri>20?`<span class="tag" style="background:${riskBg(ri)};color:${riskColor(ri)};">Riesgo ${ri}</span>`:'';
+    // Subrubro tag
+    let srTag='';
+    if(l._subrubro&&SUBRUBROS_DB[l._subrubro]){
+      const sr=SUBRUBROS_DB[l._subrubro];
+      const srClass=sr.color==='agri'?'tag-agri':sr.color==='salud'?'tag-salud':sr.color==='industrial'?'tag-industrial':'';
+      srTag=`<span class="tag ${srClass}">${sr.label}</span>`;
+    }
+    const flagged=ri>30||parseInt(l.CantidadReclamos||0)>0||l.TipoConvocatoria===0;
+    return `<div class="licit-card ${selectedLicit?.CodigoLicitacion===l.CodigoLicitacion?'selected':''} ${flagged?'risk-flagged':''}" onclick="selectLic(${allLics.indexOf(l)})">
+      <div class="licit-header"><div class="licit-title">${i+1}. ${l.Nombre||'Sin nombre'}</div><span class="score-badge ${cls}">${s}%</span></div>
+      <div class="licit-meta"><span>${l.NombreOrganismo||'—'}</span><span>Cierre: ${ci}</span><span>${ms}</span></div>
+      <div style="display:flex;gap:3px;flex-wrap:wrap;">${tipoTag}${srTag}${alertTag}${diasTag}${recTag}${convTag}${tomaTag}${riTag}</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${s}%;background:${s>=70?'#639922':s>=50?'#BA7517':'#E24B4A'}"></div></div>
+    </div>`;
+  }).join('');
+  if (!filt.length) c.innerHTML='<div class="loading">Sin licitaciones para este filtro.</div>';
+}
+
+function selectLic(idx){selectedLicit=allLics[idx];renderList();showDetail(selectedLicit);}
+
+function showDetail(l) {
+  const c=document.getElementById('detail-container');
+  const code=l.CodigoLicitacion||'';
+  const orgName=(l.NombreOrganismo||'').replace(/'/g,'');
+  const ri=l._riesgoInline||0;
+  const diasCierre=parseInt(l.DiasCierreLicitacion||0);
+  const reclamos=parseInt(l.CantidadReclamos||0);
+  const oferentes=l.Adjudicacion?.NumeroOferentes||0;
+  const actaUrl=l.Adjudicacion?.UrlActa||'';
+  c.innerHTML=`<div class="panel" style="margin-top:.8rem;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.7rem;flex-wrap:wrap;gap:5px;">
+      <div style="font-size:13px;font-weight:700;flex:1;">${l.Nombre}</div>
+      <a href="https://www.mercadopublico.cl/Procurement/Modules/RFB/DetailsAcquisition.aspx?qs=${code}" target="_blank" style="font-size:10px;color:#185FA5;">Ver portal →</a>
+    </div>
+    <div class="data-grid">
+      <div class="data-item"><div class="di-label">Organismo</div><div class="di-val">${l.NombreOrganismo||'—'}</div></div>
+      <div class="data-item"><div class="di-label">Monto estimado</div><div class="di-val">${parseFloat(l.MontoEstimado||0)>0?'$'+Number(l.MontoEstimado).toLocaleString('es-CL'):'No publicado'}</div></div>
+      <div class="data-item"><div class="di-label">Tipo</div><div class="di-val">${l.Tipo||'—'}</div></div>
+      <div class="data-item"><div class="di-label">Días cierre</div><div class="di-val ${diasCierre<=5&&diasCierre>0?'red':diasCierre<=10?'amber':'green'}">${diasCierre>0?diasCierre+' días':'—'}</div></div>
+      <div class="data-item"><div class="di-label">Reclamos</div><div class="di-val ${reclamos>0?'red':'green'}">${reclamos>0?reclamos+' reclamo(s)':'Sin reclamos'}</div></div>
+      <div class="data-item"><div class="di-label">Convocatoria</div><div class="di-val ${l.TipoConvocatoria===0?'red':'green'}">${l.TipoConvocatoria===0?'Cerrada':'Abierta'}</div></div>
+      <div class="data-item"><div class="di-label">Toma de Razón</div><div class="di-val ${l.TomaRazon===1?'green':'amber'}">${l.TomaRazon===1?'Sí':'No'}</div></div>
+      <div class="data-item"><div class="di-label">Nº oferentes</div><div class="di-val ${oferentes>0&&oferentes<=2?'red':oferentes>3?'green':'amber'}">${oferentes>0?oferentes:'—'}</div></div>
+    </div>
+    ${ri>20?`<div style="background:${riskBg(ri)};border:1px solid ${riskColor(ri)}40;border-radius:8px;padding:.6rem .8rem;font-size:11px;color:${riskColor(ri)};margin-bottom:.7rem;"><b>Señales (${ri}/100):</b> ${l._riesgoSignals.join(' · ')}</div>`:''}
+    <div id="ai-detail" class="loading"><span class="spinner"></span>Analizando con IA...</div>
+    ${actaUrl?`<div style="margin-top:.4rem;font-size:10px;"><a href="${actaUrl}" target="_blank" style="color:#185FA5;">Ver acta →</a></div>`:''}
+    <div style="display:flex;gap:5px;margin-top:.7rem;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="goSimular('${code}')">Simular ↗</button>
+      <button class="btn btn-sm" onclick="goHistorial('${orgName}')">Historial ↗</button>
+      <button class="btn btn-danger btn-sm" onclick="goRiesgo('${orgName}')">Riesgo ↗</button>
+      <button class="btn btn-sm" onclick="prefillPart('${code}','${(l.Nombre||'').replace(/'/g,'')}','${orgName}','${l.MontoEstimado||0}')">Registrar ↗</button>
+    </div>
+  </div>`;
+  analyzeWithAI(l);
+}
+
+async function analyzeWithAI(l) {
+  const emp=getActiveEmpresa();
+  const ctx=`${emp.nombre},${emp.exp}a,${emp.rubro},subrubros:[${(emp.subrubros||[]).join(',')}]`;
+  const prompt=`Licitación Chile:"${l.Nombre}"|${l.NombreOrganismo}|${l.Tipo||'?'}|$${(l.MontoEstimado/1e6||0).toFixed(1)}M|${l.DiasCierreLicitacion||'?'}d|rec:${l.CantidadReclamos||0}|${l.TipoConvocatoria===0?'cerrada':'abierta'}|contraloria:${l.TomaRazon===1?'sí':'no'}
+Empresa:${ctx}
+4 puntos breves: 1)Competencia esperada 2)Requisitos clave 3)Estrategia precio 4)Prob.ganar% y factor crítico`;
+  try {
+    const txt=await callAI(prompt,350);
+    document.getElementById('ai-detail').outerHTML=`<div class="ai-box ai-green">${txt.replace(/\n/g,'<br>')}</div>`;
+  } catch(e){document.getElementById('ai-detail').textContent='Error: '+e.message;}
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function goSimular(code){setTab('simulador',document.querySelectorAll('#main-tabs .tab')[2]);const idx=allLics.findIndex(l=>l.CodigoLicitacion===code);if(idx>=0){document.getElementById('sim-select').value=idx;selectedLicit=allLics[idx];buildSimSliders();showSimPreview();document.getElementById('sim-content').style.display='block';}}
+function goHistorial(org){setTab('historial',document.querySelectorAll('#main-tabs .tab')[3]);document.getElementById('org-input').value=org;buscarHistorial();}
+function goRiesgo(org){setTab('riesgo',document.querySelectorAll('#main-tabs .tab')[4]);document.getElementById('risk-org-input').value=org;analizarRiesgoOrg();}
+function prefillPart(code,nombre,org,monto){setTab('participaciones',document.querySelectorAll('#main-tabs .tab')[5]);document.getElementById('part-codigo').value=code;document.getElementById('part-nombre').value=nombre;document.getElementById('part-org').value=org;document.getElementById('part-monto').value=monto;}
+
+// ═══════════════════════════════════════════════════════
+// SIMULADOR
+// ═══════════════════════════════════════════════════════
+function populateSimSelect(){
+  const s=document.getElementById('sim-select');
+  s.innerHTML='<option value="">— Selecciona licitación —</option>';
+  allLics.forEach((l,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${i+1}. ${(l.Nombre||'').substring(0,55)}...`;s.appendChild(o);});
+  s.onchange=function(){if(this.value!==''){selectedLicit=allLics[parseInt(this.value)];buildSimSliders();showSimPreview();document.getElementById('sim-content').style.display='block';}};
+}
+function showSimPreview(){
+  if(!selectedLicit)return;
+  const l=selectedLicit,ri=l._riesgoInline||0;
+  document.getElementById('sim-data-preview').innerHTML=`<div class="data-grid" style="margin-bottom:.7rem;">
+    <div class="data-item"><div class="di-label">Tipo</div><div class="di-val">${l.Tipo||'—'}</div></div>
+    <div class="data-item"><div class="di-label">Días cierre</div><div class="di-val ${parseInt(l.DiasCierreLicitacion||30)<=5?'red':'green'}">${l.DiasCierreLicitacion||'—'}</div></div>
+    <div class="data-item"><div class="di-label">Reclamos</div><div class="di-val ${parseInt(l.CantidadReclamos||0)>0?'red':'green'}">${l.CantidadReclamos||0}</div></div>
+    <div class="data-item"><div class="di-label">Riesgo</div><div class="di-val" style="color:${riskColor(ri)}">${ri}/100</div></div>
+  </div>`;
+}
+function buildSimSliders(){
+  const emp=getActiveEmpresa();
+  const vars=[{id:'precio',label:'Precio competitivo',val:70,unit:'%'},{id:'tecnico',label:'Propuesta técnica',val:80,unit:'pts'},{id:'exp_sl',label:'Experiencia (años)',val:Math.min(10,emp.exp||5),min:0,max:10,unit:'años'},{id:'plazo',label:'Cumplimiento plazo',val:90,unit:'%'},{id:'garantia',label:'Garantías',val:75,unit:'%'},{id:'local',label:'Conocimiento organismo',val:60,unit:'%'}];
+  document.getElementById('sim-sliders').innerHTML=vars.map(v=>`<div class="sim-item"><label>${v.label}</label><input type="range" min="${v.min||0}" max="${v.max||100}" value="${v.val}" id="sl-${v.id}" oninput="document.getElementById('sv-${v.id}').textContent=this.value+' ${v.unit}'"><span id="sv-${v.id}" style="font-size:10px;color:#888;">${v.val} ${v.unit}</span></div>`).join('');
+}
+async function runSimulation(){
+  if(!selectedLicit)return;
+  document.getElementById('sim-result').innerHTML='<div class="loading"><span class="spinner"></span>Simulando...</div>';
+  const emp=getActiveEmpresa();
+  const vals={};['precio','tecnico','exp_sl','plazo','garantia','local'].forEach(id=>{vals[id]=document.getElementById(`sl-${id}`)?.value||70;});
+  const notas=document.getElementById('sim-notas')?.value||'';
+  const l=selectedLicit;
+  const prompt=`Simula evaluación oferta licitación Chile:"${l.Nombre}"|${l.NombreOrganismo}|${l.Tipo||'?'}|$${(l.MontoEstimado/1e6||0).toFixed(1)}M|rec:${l.CantidadReclamos||0}|${l.TipoConvocatoria===0?'cerrada':'abierta'}|${l.Adjudicacion?.NumeroOferentes||'?'}of
+Empresa:${emp.nombre}(${emp.exp}a,${emp.rubro}) Oferta:precio${vals.precio}% tec${vals.tecnico}pts exp${vals.exp_sl}a plazo${vals.plazo}% gta${vals.garantia}% org${vals.local}%${notas?' '+notas:''}
+Responde:1)Puntaje/100 desglose 2)Prob.ganar% 3)2 competidores Chile 4)Variable crítica 5)Táctica concreta`;
+  try{const txt=await callAI(prompt,400);document.getElementById('sim-result').innerHTML=`<div class="ai-box ai-green">${txt.replace(/\n/g,'<br>')}</div>`;}
+  catch(e){document.getElementById('sim-result').innerHTML=`<div class="ai-box ai-red">Error: ${e.message}</div>`;}
+}
+
+// ═══════════════════════════════════════════════════════
+// HISTORIAL & RIESGO
+// ═══════════════════════════════════════════════════════
+async function buscarHistorial(){
+  const org=document.getElementById('org-input').value.trim();if(!org)return;
+  const c=document.getElementById('historial-result');
+  c.innerHTML='<div class="loading"><span class="spinner"></span>Analizando...</div>';
+  const emp=getActiveEmpresa();
+  const orgData=allLics.filter(l=>l.NombreOrganismo===org);
+  const dataCtx=orgData.length?`API:${orgData.map(l=>`${l.Tipo}$${(l.MontoEstimado/1e6||0).toFixed(1)}M ${l.DiasCierreLicitacion}d ${l.CantidadReclamos||0}rec${l.TipoConvocatoria===0?' cerrada':''}`).join('|')}`:'-';
+  const prompt=`Organismo Chile:"${org}" [${dataCtx}] Empresa:${emp.nombre}(${emp.exp}a,${emp.rubro},subrubros:${(emp.subrubros||[]).join(',')})
+Breve:1)Perfil comprador 2)Criterios evaluación 3)Perfil ganadores 4)Patrones 5)Estrategia 6)Alertas`;
+  try{
+    const txt=await callAI(prompt,380);
+    c.innerHTML=`<div style="font-size:12px;font-weight:700;margin-bottom:5px;">${org}</div><div class="ai-box ai-purple">${txt.replace(/\n/g,'<br>')}</div><button class="btn btn-danger btn-sm" onclick="goRiesgo('${org.replace(/'/g,'')}')">Analizar riesgo ↗</button>`;
+  }catch(e){c.innerHTML=`<div class="ai-box ai-red">Error: ${e.message}</div>`;}
+}
+
+async function analizarRiesgoOrg(){
+  const org=document.getElementById('risk-org-input').value.trim();if(!org)return;
+  const c=document.getElementById('risk-org-result');
+  c.innerHTML='<div class="loading"><span class="spinner" style="border-top-color:#E24B4A;"></span>Calculando...</div>';
+  const orgData=allLics.filter(l=>l.NombreOrganismo===org);
+  const totalReclamos=orgData.reduce((s,l)=>s+parseInt(l.CantidadReclamos||0),0);
+  const cerradas=orgData.filter(l=>l.TipoConvocatoria===0).length;
+  const plazoCorto=orgData.filter(l=>parseInt(l.DiasCierreLicitacion||30)<=5).length;
+  const dataReal=orgData.length?`API:${orgData.length}lic rec=${totalReclamos} cerradas=${cerradas} plazoCorto=${plazoCorto}`:'-';
+  const prompt=`Auditor compras públicas Chile:"${org}" ${dataReal}
+INDICE:[0-100] NIVEL:[Bajo/Moderado/Alto/Crítico] SEÑALES:[lista] ANTECEDENTES:[Contraloría/Fiscalía] RECOMENDACION:[postular/caso a caso/evitar]`;
+  try{
+    const txt=await callAI(prompt,400);
+    const sm=txt.match(/INDICE:\s*(\d+)/i);
+    const score=Math.min(100,sm?parseInt(sm[1]):Math.max(totalReclamos*15,cerradas>0?30:0,plazoCorto>0?20:0));
+    addToRadar(org,score,'');updateCritMetric();
+    allLics.forEach(l=>{if(l.NombreOrganismo===org)l._riskScore=score;});renderList();
+    c.innerHTML=`<div class="risk-gauge">
+      <div style="text-align:center;">${buildGauge(score)}<div style="font-size:10px;color:${riskColor(score)};font-weight:700;">${riskLabel(score)}</div></div>
+      <div style="flex:1;min-width:130px;"><div style="font-size:14px;font-weight:700;margin-bottom:3px;">${org}</div>
+      <span style="font-size:10px;padding:2px 9px;border-radius:20px;font-weight:700;background:${riskBg(score)};color:${riskColor(score)};">${riskLabel(score)} · ${score}/100</span>
+      ${totalReclamos>0?`<div style="font-size:10px;color:#A32D2D;margin-top:3px;">${totalReclamos} reclamo(s) API</div>`:''}</div>
+    </div>
+    <div class="ai-box ${score>=76?'ai-red':score>=51?'ai-amber':'ai-green'}">${txt.replace(/\n/g,'<br>')}</div>
+    <button class="btn btn-primary btn-sm" onclick="compararSector('${org.replace(/'/g,'')}')">Comparar sector ↗</button>
+    <div id="comp-result" style="margin-top:.6rem;"></div>`;
+  }catch(e){c.innerHTML=`<div class="ai-box ai-red">Error: ${e.message}</div>`;}
+}
+
+async function compararSector(org){
+  document.getElementById('comp-result').innerHTML='<div class="loading"><span class="spinner"></span>Comparando...</div>';
+  const prompt=`Compara "${org}" vs promedio ChileCompra: transparencia, precio/técnica, trato directo, diversidad proveedores. Numérico y breve.`;
+  try{const txt=await callAI(prompt,280);document.getElementById('comp-result').innerHTML=`<div class="ai-box ai-purple">${txt.replace(/\n/g,'<br>')}</div>`;}
+  catch(e){document.getElementById('comp-result').innerHTML='';}
+}
+
+async function analizarRiesgoLic(){
+  const nombre=document.getElementById('rl-nombre').value.trim(),org=document.getElementById('rl-org').value.trim(),monto=document.getElementById('rl-monto').value.trim(),dias=parseInt(document.getElementById('rl-dias').value)||0,tipo=document.getElementById('rl-tipo').value,reclamos=parseInt(document.getElementById('rl-reclamos').value)||0,conv=document.getElementById('rl-conv').value,oferentes=parseInt(document.getElementById('rl-oferentes').value)||0,bases=document.getElementById('rl-bases').value.trim().substring(0,2000),adjud=document.getElementById('rl-adjud').value.trim();
+  if(!nombre&&!org)return;
+  let hardScore=0,hardSignals=[];
+  if(reclamos>0){hardScore+=Math.min(30,reclamos*10);hardSignals.push(`${reclamos}rec`);}
+  if(dias>0&&dias<=5&&['LE','LP','LQ','LR'].includes(tipo)){hardScore+=25;hardSignals.push(`${dias}d`);}
+  if(conv==='0'){hardScore+=20;hardSignals.push('Cerrada');}
+  if(oferentes>0&&oferentes<=2){hardScore+=15;hardSignals.push(`${oferentes}of`);}
+  const c=document.getElementById('risk-lic-result');
+  c.innerHTML='<div class="loading"><span class="spinner" style="border-top-color:#E24B4A;"></span>Calculando...</div>';
+  const prompt=`Riesgo licitación Chile. Duros:${hardScore}(${hardSignals.join(',')})
+"${nombre||org}"|${org}|${tipo}|$${monto}|${dias}d|rec:${reclamos}|${conv==='0'?'cerrada':'abierta'}|${oferentes}of|adj:${adjud||'-'}
+${bases?'Bases:'+bases:''}
+INDICE:[0-100] NIVEL:[Bajo/Moderado/Alto/Crítico] SENALES:[lista] RECOMENDACION:[postular/analizar/evitar]`;
+  try{
+    const txt=await callAI(prompt,380);
+    const sm=txt.match(/INDICE:\s*(\d+)/i);
+    const score=sm?parseInt(sm[1]):Math.max(hardScore,20);
+    if(org)addToRadar(org,score,'');updateCritMetric();
+    const signals=(txt.match(/SENALES:([\s\S]*?)(?:RECOMENDACION:|$)/i)?.[1]||'').trim().split('\n').filter(s=>s.trim().length>2);
+    c.innerHTML=`<div class="risk-gauge">
+      <div style="text-align:center;">${buildGauge(score)}<div style="font-size:10px;color:${riskColor(score)};font-weight:700;">${riskLabel(score)}</div></div>
+      <div style="flex:1;"><div style="font-size:12px;font-weight:700;">${nombre||org}</div><span style="font-size:10px;padding:2px 9px;border-radius:20px;font-weight:700;background:${riskBg(score)};color:${riskColor(score)};">${score}/100</span>${hardSignals.length?`<div style="font-size:10px;color:#A32D2D;margin-top:2px;">${hardSignals.join(', ')}</div>`:''}</div>
+    </div>
+    ${signals.length?`<div style="margin-bottom:.5rem;">${signals.map(s=>`<div class="signal-item"><div class="signal-icon ${score>=51?'sig-red':'sig-amber'}">${score>=51?'!':'~'}</div><div style="font-size:10px;">${s.replace(/^[-•*\d.]\s*/,'')}</div></div>`).join('')}</div>`:''}
+    <div class="ai-box ${score>=76?'ai-red':score>=51?'ai-amber':'ai-green'}">${txt.replace(/\n/g,'<br>')}</div>`;
+  }catch(e){c.innerHTML=`<div class="ai-box ai-red">Error: ${e.message}</div>`;}
+}
+
+function addToRadar(org,score,rubro){const ex=radarData.findIndex(o=>o.org===org);if(ex>=0)radarData[ex].score=score;else radarData.push({org,score,rubro,ts:new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})});localStorage.setItem('licit_radar',JSON.stringify(radarData));renderRiskRadar();}
+function updateCritMetric(){document.getElementById('m-crit').textContent=radarData.filter(o=>o.score>=51).length;}
+
+function renderRiskRadar(){
+  const c=document.getElementById('risk-radar-grid'),empty=document.getElementById('risk-radar-empty');
+  if(!radarData.length){empty.style.display='block';c.innerHTML='';return;}
+  empty.style.display='none';
+  c.innerHTML=[...radarData].sort((a,b)=>b.score-a.score).map(o=>`
+    <div class="org-card ${o.score>=51?'flagged':''}" onclick="document.getElementById('risk-org-input').value='${o.org}';analizarRiesgoOrg();">
+      <div style="font-size:11px;font-weight:700;margin-bottom:3px;">${o.org}</div>
+      <span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:${riskBg(o.score)};color:${riskColor(o.score)};">${riskLabel(o.score)} · ${o.score}</span>
+      <div style="font-size:9px;color:#aaa;margin-top:1px;">${o.ts}</div>
+      <div class="hm-bar" style="margin-top:3px;"><div style="height:100%;border-radius:2px;width:${o.score}%;background:${riskColor(o.score)};"></div></div>
+    </div>`).join('');
+}
+
+function setRiskTab(name,el){
+  document.querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  ['org','lic','radar','metodologia'].forEach(t=>{const e=document.getElementById('risk-tab-'+t);if(e)e.style.display=t===name?'block':'none';});
+  if(name==='radar')renderRiskRadar();
+}
+
+// ═══════════════════════════════════════════════════════
+// PARTICIPACIONES
+// ═══════════════════════════════════════════════════════
+function saveParticipacion(){
+  const p={codigo:document.getElementById('part-codigo').value,nombre:document.getElementById('part-nombre').value,org:document.getElementById('part-org').value,monto:document.getElementById('part-monto').value,resultado:document.getElementById('part-resultado').value,puntaje:document.getElementById('part-puntaje').value,notas:document.getElementById('part-notas').value,fecha:new Date().toLocaleDateString('es-CL'),empresa:getActiveEmpresa().nombre};
+  participaciones.unshift(p);localStorage.setItem('licit_part',JSON.stringify(participaciones));renderParticipaciones();
+  if(participaciones.length>=2)generarAprendizaje();
+}
+function renderParticipaciones(){
+  const won=participaciones.filter(p=>p.resultado==='won').length,total=participaciones.filter(p=>p.resultado!=='pending').length;
+  if(total>0)document.getElementById('m-tasa').textContent=Math.round(won/total*100)+'%';
+  document.getElementById('participaciones-list').innerHTML=participaciones.map(p=>`<div class="partic-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px;"><div style="font-size:11px;font-weight:700;">${p.nombre||p.codigo}</div><span class="result-pill ${p.resultado}">${p.resultado==='won'?'Ganada':p.resultado==='lost'?'Perdida':'Pendiente'}</span></div><div style="font-size:10px;color:#888;">${p.org}${p.empresa?' · '+p.empresa:''} · ${p.fecha}${p.puntaje?' · Puntaje '+p.puntaje:''}</div>${p.notas?`<div style="font-size:10px;margin-top:2px;color:#aaa;">${p.notas}</div>`:''}</div>`).join('');
+}
+async function generarAprendizaje(){
+  const emp=getActiveEmpresa();
+  const resumen=participaciones.filter(p=>!p.empresa||p.empresa===emp.nombre).slice(0,8).map(p=>`${p.nombre.substring(0,40)}:${p.resultado}${p.puntaje?' pts'+p.puntaje:''}${p.notas?' '+p.notas.substring(0,50):''}`).join('\n');
+  if(!resumen)return;
+  const prompt=`Historial ${emp.nombre} licitaciones Chile:\n${resumen}\nBreve:1)Patrones éxito/fracaso 2)Dónde van mejor 3)Errores 4)Recomendaciones 5)Próximo paso`;
+  try{const txt=await callAI(prompt,300);document.getElementById('aprendizaje-ia').innerHTML=`<div class="panel"><h3>Aprendizaje IA · ${emp.nombre}</h3><div class="ai-box ai-amber">${txt.replace(/\n/g,'<br>')}</div></div>`;}catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════
+// ALERTAS
+// ═══════════════════════════════════════════════════════
+function saveAlerta(){
+  const kw=document.getElementById('alerta-kw').value.trim();if(!kw)return;
+  alertas.push({id:Date.now(),kw,score:parseInt(document.getElementById('alerta-score').value)||65,mmin:parseFloat((document.getElementById('alerta-mmin').value||'0').replace(/\./g,''))||0,mmax:parseFloat((document.getElementById('alerta-mmax').value||'999999999').replace(/\./g,''))||999999999,empresa:getActiveEmpresa().id});
+  document.getElementById('alerta-kw').value='';
+  localStorage.setItem('licit_alerts',JSON.stringify(alertas));
+  renderAlertas();document.getElementById('m-alerts').textContent=alertas.length;
+}
+function renderAlertas(){
+  document.getElementById('alertas-list').innerHTML=alertas.map(a=>`<div class="alert-card"><div><div style="font-size:12px;font-weight:700;">"${a.kw}"</div><div style="font-size:10px;color:#888;">Score mín: ${a.score}% · $${(a.mmin/1e6).toFixed(1)}M–$${(a.mmax/1e6).toFixed(1)}M</div></div><button class="btn btn-danger btn-sm" onclick="alertas=alertas.filter(x=>x.id!=${a.id});localStorage.setItem('licit_alerts',JSON.stringify(alertas));renderAlertas();document.getElementById('m-alerts').textContent=alertas.length;">✕</button></div>`).join('');
+  checkAlertas();
+}
+function checkAlertas(){
+  if(!alertas.length||!allLics.length)return;
+  const matched=allLics.filter(l=>{const als=checkAlerts(l);l._alerts=als;return als.length>0;});
+  const c=document.getElementById('alertas-triggered');
+  if(matched.length)c.innerHTML=`<div class="panel"><h3>Licitaciones que activan alertas (${matched.length})</h3>${matched.map(l=>`<div class="alert-card"><div><div style="font-size:11px;font-weight:700;">${l.Nombre}</div><div style="font-size:10px;color:#888;">${l.NombreOrganismo} · ${l._score}%</div></div><button class="btn btn-primary btn-sm" onclick="goSimular('${l.CodigoLicitacion}')">Simular ↗</button></div>`).join('')}</div>`;
+  else c.innerHTML='';
+}
+
+// ═══════════════════════════════════════════════════════
+// HEATMAP
+// ═══════════════════════════════════════════════════════
+function renderHeatmap(){
+  const c=document.getElementById('heatmap-container');
+  if(!allLics.length){c.innerHTML='<div class="loading">Genera el barrido diario primero.</div>';return;}
+  const orgs={};
+  allLics.forEach(l=>{
+    const k=l.NombreOrganismo||'Desconocido';
+    if(!orgs[k])orgs[k]={nombre:k,scores:[],risk:radarData.find(r=>r.org===k)?.score||null,reclamos:0,cerradas:0};
+    orgs[k].scores.push(l._score);
+    orgs[k].reclamos+=parseInt(l.CantidadReclamos||0);
+    if(l.TipoConvocatoria===0)orgs[k].cerradas++;
+  });
+  const sorted=Object.values(orgs).map(o=>({...o,avg:Math.round(o.scores.reduce((a,b)=>a+b,0)/o.scores.length)})).sort((a,b)=>b.avg-a.avg);
+  c.innerHTML=`<div class="hm-grid">${sorted.map(o=>{
+    const col=o.avg>=70?'#639922':o.avg>=50?'#BA7517':'#E24B4A';
+    const bg=o.avg>=70?'#EAF3DE':o.avg>=50?'#FAEEDA':'#FCEBEB';
+    return`<div class="hm-card" style="background:${bg};" onclick="goRiesgo('${o.nombre.replace(/'/g,'')}')">
+      <div style="font-size:11px;font-weight:700;">${o.nombre}</div>
+      <div style="font-size:10px;color:${col};font-weight:700;">${o.avg}% afinidad</div>
+      ${o.risk!=null?`<div style="font-size:9px;color:${riskColor(o.risk)};">Riesgo: ${o.risk}/100</div>`:''}
+      ${o.reclamos>0?`<div style="font-size:9px;color:#A32D2D;">${o.reclamos} reclamo(s)</div>`:''}
+      ${o.cerradas>0?`<div style="font-size:9px;color:#A32D2D;">Conv. cerrada</div>`:''}
+      <div class="hm-bar"><div style="height:100%;border-radius:2px;width:${o.avg}%;background:${col};"></div></div>
+    </div>`;}).join('')}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// BASES PDF
+// ═══════════════════════════════════════════════════════
+async function handlePDF(input){
+  const file=input.files[0];if(!file)return;
+  const c=document.getElementById('pdf-result');
+  const emp=getActiveEmpresa();
+  c.innerHTML='<div class="loading"><span class="spinner"></span>Extrayendo texto del PDF...</div>';
+  try{
+    const texto=await extractPDFText(file);
+    if(!texto||texto.length<50)throw new Error('No se pudo extraer texto. El PDF puede ser una imagen escaneada.');
+    c.innerHTML='<div class="loading"><span class="spinner"></span>Analizando con IA...</div>';
+    const prompt=`Bases licitación Chile. Empresa:${emp.nombre}(${emp.rubro},${(emp.subrubros||[]).join(',')})
+Analiza breve:1)Criterios+ponderaciones 2)Requisitos mínimos 3)Plazos clave 4)Garantías 5)Experiencia mínima 6)Señales riesgo(bases a medida,marcas específicas,ponderaciones raras) 7)Veredicto:¿conviene postular esta empresa?
+BASES:\n${texto}`;
+    const txt=await callAI(prompt,450);
+    c.innerHTML=`<div style="font-size:11px;font-weight:700;margin-bottom:4px;">${file.name} <span style="color:#888;font-weight:400;">(${texto.length} chars · ~${Math.round(texto.length/4)} tokens)</span></div><div class="ai-box ai-blue">${txt.replace(/\n/g,'<br>')}</div>`;
+  }catch(e){
+    c.innerHTML=`<div class="ai-box ai-red"><b>Error:</b> ${e.message}<br><br>Si el PDF es escaneado (imagen), copia el texto manualmente en "Radar de Riesgo → Por licitación".</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════
+function setTab(name,el){
+  document.querySelectorAll('#main-tabs .tab').forEach(t=>t.classList.remove('active'));
+  if(el&&el.classList)el.classList.add('active');
+  ['top10','empresas','simulador','historial','riesgo','participaciones','alertas','heatmap','bases'].forEach(t=>{const e=document.getElementById('tab-'+t);if(e)e.style.display=t===name?'block':'none';});
+  if(name==='empresas')renderEmpresasList();
+}
+function setFilter(el,f){document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');currentFilter=f;renderList();}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+renderEmpresaSelector();
+renderFilters();
+renderParticipaciones();
+renderAlertas();
+updateCritMetric();
+fetchLicitaciones();
+</script>
+</body>
+</html>
