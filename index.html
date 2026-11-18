@@ -140,7 +140,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 <body>
 
 <div class="topbar">
-  <div><h1>LicitaInteligente Pro</h1><div style="font-size:10px;color:#888;">Mercado Público Chile · v6</div></div>
+  <div><h1>LicitaInteligente Pro</h1><div style="font-size:10px;color:#888;">Mercado Público Chile · v7</div></div>
   <div class="topbar-right">
     <div class="empresa-selector">
       <div class="empresa-dot" id="empresa-dot" style="background:#185FA5;"></div>
@@ -195,6 +195,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
   <div class="tab" onclick="setTab('heatmap',this)">Mapa organismos</div>
   <div class="tab" onclick="setTab('bases',this)">Bases PDF</div>
   <div class="tab" onclick="setTab('historial-mercado',this)">Inteligencia histórica</div>
+  <div class="tab" onclick="setTab('compraagil',this)">Compra Ágil</div>
 </div>
 
 <!-- TOP LICITACIONES -->
@@ -223,6 +224,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
   </div>
   <div id="loading-msg" class="loading" style="display:none;"><span class="spinner"></span>Procesando licitaciones...</div>
   <div id="error-container"></div>
+  <div id="enrich-status"></div>
   <div id="licit-list"></div>
   <div id="detail-container"></div>
 </div>
@@ -413,6 +415,63 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
   </div>
 </div>
 
+
+<!-- COMPRA ÁGIL -->
+<div class="tab-content" id="tab-compraagil" style="display:none;">
+  <div class="panel">
+    <h3>Compra Ágil · búsqueda e historial de adjudicaciones</h3>
+    <p style="font-size:11px;color:#888;margin-bottom:.7rem;">API v2 de Mercado Público (tope 100 UTM) vía proxy. Una keyword a la vez. Cada adjudicación consultada queda guardada en este navegador para construir tu base de competidores y precios.</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:.6rem;">
+      <span style="font-size:10px;color:#888;">Proxy:</span>
+      <input type="text" id="ca-proxy-input" style="flex:1;min-width:220px;padding:5px 9px;border-radius:6px;border:1px solid #e0e0d8;font-size:11px;"/>
+      <button class="btn btn-sm" onclick="caSaveProxy()">Guardar</button>
+    </div>
+    <div id="ca-msg"></div>
+    <div class="sec-title">Keywords de la empresa activa</div>
+    <div id="ca-kw-chips" class="filters"></div>
+  </div>
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Publicadas (búsqueda)</div><div class="metric-value" id="ca-m-act">—</div></div>
+    <div class="metric"><div class="metric-label">Relevantes ≥60%</div><div class="metric-value" id="ca-m-rel" style="color:#185FA5;">—</div></div>
+    <div class="metric"><div class="metric-label">Adjudicaciones en caché</div><div class="metric-value" id="ca-m-cache">0</div></div>
+    <div class="metric"><div class="metric-label">Proveedores ganadores</div><div class="metric-value" id="ca-m-prov">0</div></div>
+  </div>
+  <div class="inner-tabs" id="ca-inner-tabs">
+    <div class="inner-tab active" onclick="caSetTab('activas',this)">Activas</div>
+    <div class="inner-tab" onclick="caSetTab('historial',this)">Historial adjudicaciones</div>
+    <div class="inner-tab" onclick="caSetTab('competidores',this)">Competidores</div>
+    <div class="inner-tab" onclick="caSetTab('precios',this)">Precios de referencia</div>
+  </div>
+  <div id="ca-tab-activas">
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:.8rem;">
+      <input type="text" id="ca-q" placeholder="keyword (ej: zunchos, EPP, video)" style="flex:1;min-width:180px;padding:7px 9px;border-radius:8px;border:1px solid #e0e0d8;font-size:12px;" onkeydown="if(event.key==='Enter')caBuscarActivas()"/>
+      <select id="ca-region" style="padding:7px;border-radius:8px;border:1px solid #e0e0d8;font-size:11px;"></select>
+      <button class="btn btn-primary" onclick="caBuscarActivas()">Buscar ↗</button>
+    </div>
+    <div id="ca-result"></div><div id="ca-detail"></div>
+  </div>
+  <div id="ca-tab-historial" style="display:none;">
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:.4rem;">
+      <input type="text" id="ca-hq" placeholder="keyword" style="flex:1;min-width:160px;padding:7px 9px;border-radius:8px;border:1px solid #e0e0d8;font-size:12px;" onkeydown="if(event.key==='Enter')caBuscarHistorial()"/>
+      <select id="ca-hdias" style="padding:7px;border-radius:8px;border:1px solid #e0e0d8;font-size:11px;"><option value="30">30 días</option><option value="60">60 días</option><option value="90" selected>90 días</option><option value="180">180 días</option><option value="365">365 días</option></select>
+      <select id="ca-hregion" style="padding:7px;border-radius:8px;border:1px solid #e0e0d8;font-size:11px;"><option value="">Todo Chile</option><option value="15">15 · Arica y Parinacota</option><option value="1">1 · Tarapacá</option><option value="2">2 · Antofagasta</option><option value="3">3 · Atacama</option><option value="4">4 · Coquimbo</option><option value="5">5 · Valparaíso</option><option value="13">13 · Metropolitana</option><option value="6">6 · O'Higgins</option><option value="7">7 · Maule</option><option value="16">16 · Ñuble</option><option value="8">8 · Biobío</option><option value="9">9 · Araucanía</option><option value="14">14 · Los Ríos</option><option value="10">10 · Los Lagos</option><option value="11">11 · Aysén</option><option value="12">12 · Magallanes</option></select>
+      <select id="ca-hmax" title="Detalles nuevos por búsqueda (cada uno consume cuota)" style="padding:7px;border-radius:8px;border:1px solid #e0e0d8;font-size:11px;"><option value="10">10 detalles</option><option value="15" selected>15 detalles</option><option value="30">30 detalles</option><option value="50">50 detalles</option></select>
+      <button class="btn btn-primary" onclick="caBuscarHistorial()">Buscar ↗</button>
+    </div>
+    <div style="font-size:10px;color:#aaa;margin-bottom:.7rem;">Cada detalle nuevo consume una llamada de tu cuota diaria. Los ya guardados no gastan cuota.</div>
+    <div id="ca-hresult"></div>
+  </div>
+  <div id="ca-tab-competidores" style="display:none;">
+    <div style="display:flex;gap:7px;margin-bottom:.7rem;flex-wrap:wrap;"><select id="ca-ckw" onchange="caRenderCompetidores()" style="padding:6px;border-radius:8px;border:1px solid #e0e0d8;font-size:11px;"></select>
+    <button class="btn btn-sm" onclick="caExportCSV()">⬇ Exportar CSV</button><button class="btn btn-danger btn-sm" onclick="caLimpiarCache()">Borrar historial</button></div>
+    <div id="ca-comp-result"></div>
+  </div>
+  <div id="ca-tab-precios" style="display:none;">
+    <div style="margin-bottom:.7rem;"><select id="ca-pkw" onchange="caRenderPrecios()" style="padding:6px;border-radius:8px;border:1px solid #e0e0d8;font-size:11px;"></select></div>
+    <div id="ca-prec-result"></div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- MODAL EMPRESA -->
@@ -596,13 +655,26 @@ async function fetchListadoPorFecha(fecha) {
   return (d.Listado || []).map(normalizarListado);
 }
 
+let mpCuota429 = false;
+function getDetCache(){ try{ return JSON.parse(localStorage.getItem('licit_det_cache')||'{}'); }catch(e){ return {}; } }
+function setDetCache(c){
+  const ks = Object.keys(c);
+  if(ks.length > 250){ ks.sort((a,b)=>(c[a].t||0)-(c[b].t||0)).slice(0, ks.length-250).forEach(k=>delete c[k]); }
+  try{ localStorage.setItem('licit_det_cache', JSON.stringify(c)); }catch(e){ localStorage.removeItem('licit_det_cache'); }
+}
 async function fetchDetallePorCodigo(codigo) {
   if (!codigo) return null;
+  const cache = getDetCache();
+  const hit = cache[codigo];
+  if (hit && Date.now() - hit.t < 12*3600*1000) return hit.d;
   try {
     const r = await fetch(`https://api.mercadopublico.cl/servicios/v1/Publico/licitaciones.json?codigo=${encodeURIComponent(codigo)}&ticket=${getMPTicket()}`);
+    if (r.status === 429) { mpCuota429 = true; return null; }
     if (!r.ok) return null;
     const d = await r.json();
-    return d.Listado?.[0] || null;
+    const det = d.Listado?.[0] || null;
+    if (det) { const c2 = getDetCache(); c2[codigo] = {t: Date.now(), d: det}; setDetCache(c2); }
+    return det;
   } catch(e) { return null; }
 }
 
@@ -618,6 +690,7 @@ function estaActiva(lic) {
     'Cerrada','Desierta','Adjudicada','Revocada','Suspendida'];
   const estado = String(lic._estado || '').trim();
   if (estado && estadosInactivos.includes(estado)) return false;
+  if (estado && !['5','05','Publicada'].includes(estado)) return false; // el listado trae CodigoEstado: solo 5 = Publicada
 
   // Verificar fecha de cierre con holgura de 12h para zonas horarias
   if (lic._fechaCierre) {
@@ -806,11 +879,7 @@ async function fetchLicitaciones() {
       // Log silencioso para diagnóstico si se necesita
       if (listado.length > 0 && i === 0) {
         const s = listado[0];
-        console.log('[LicitaInteligente] Muestra campo API:', JSON.stringify({
-          CodigoExterno: s.CodigoExterno, NombreOrganismo: s.NombreOrganismo,
-          Comprador: s.Comprador, MontoEstimado: s.MontoEstimado,
-          FechaCierre: s.FechaCierre, CodigoEstado: s.CodigoEstado
-        }, null, 2));
+        console.log('[LicitaInteligente] Claves del listado:', Object.keys(s));
       }
 
       todasLics = todasLics.concat(listado.map(normalizarListado));
@@ -866,10 +935,47 @@ async function fetchLicitaciones() {
     processLics(aRenderizar, todasLics.length);
     document.getElementById('api-status').textContent='API en vivo';
     document.getElementById('api-status').className='badge badge-live';
+    enriquecerTop(30);
   }
 
   document.getElementById('barrido-bar').style.width='100%';
   setTimeout(()=>{ document.getElementById('barrido-progress').style.display='none'; }, 800);
+}
+
+
+// ═══════════════════════════════════════════════════════
+// ENRIQUECIMIENTO: el listado por fecha solo trae código, cierre y estado.
+// Organismo, monto y región llegan con el detalle (1 llamada por licitación),
+// por eso se pide solo para las mejor puntuadas y se guarda en caché 12 h.
+// ═══════════════════════════════════════════════════════
+let enriqueciendo = false;
+async function enriquecerTop(n) {
+  if (enriqueciendo) return;
+  enriqueciendo = true; mpCuota429 = false;
+  const st = document.getElementById('enrich-status');
+  const pend = allLics.filter(l => !l._fuenteDetalle && l._codigo).slice(0, n);
+  let hechos = 0;
+  const porCodigo = {};
+  for (let i = 0; i < pend.length; i++) {
+    if (mpCuota429) break;
+    const l = pend[i];
+    st.innerHTML = `<div class="ai-box ai-blue">⏳ Cargando detalle ${i+1}/${pend.length} (organismo, monto, ítems)…</div>`;
+    const enCache = getDetCache()[l._codigo];
+    const det = await fetchDetallePorCodigo(l._codigo);
+    if (det) { porCodigo[l._codigo] = det; hechos++; }
+    if (!enCache && i < pend.length - 1) await new Promise(r => setTimeout(r, 1200));
+  }
+  if (hechos > 0) {
+    const selCod = selectedLicit?._codigo;
+    const merged = allLics.map(l => porCodigo[l._codigo] ? enriquecerConDetalle(l, porCodigo[l._codigo]) : l);
+    processLics(merged, merged.length);
+    if (selCod) selectedLicit = allLics.find(l => l._codigo === selCod) || null;
+  }
+  const sinDet = allLics.filter(l => !l._fuenteDetalle).length;
+  st.innerHTML = mpCuota429
+    ? `<div class="ai-box ai-amber">⚠ Límite de la API (429) tras ${hechos} detalles. Espera unos minutos y pulsa «Cargar más detalles».</div><button class="btn btn-sm" onclick="enriquecerTop(30)">Cargar más detalles</button>`
+    : `<div style="font-size:10px;color:#888;margin-bottom:.5rem;">🟢 ${allLics.length - sinDet} con detalle completo · ${sinDet} pendientes ${sinDet ? '<button class="btn btn-sm" onclick="enriquecerTop(30)">Cargar 30 más</button>' : ''}</div>`;
+  enriqueciendo = false;
 }
 
 function useDemoData() {
@@ -979,7 +1085,7 @@ function renderList() {
     return `<div class="licit-card ${selectedLicit?._codigo===l._codigo?'selected':''} ${flagged?'risk-flagged':''}" onclick="selectLic(${allLics.indexOf(l)})">
       <div class="licit-header"><div class="licit-title">${i+1}. ${l._nombre||'Sin nombre'}</div><span class="score-badge ${cls}">${s}%</span></div>
       <div class="licit-meta">
-        <span>${l._organismo||'Organismo no disponible'}</span>
+        <span>${l._organismo||(l._fuenteDetalle?'Organismo no disponible':'Organismo: pendiente de detalle')}</span>
         <span>Cierre: ${ci}</span>
         <span>${ms}</span>
         ${l._codigo?`<span style="color:#aaa;">ID: ${l._codigo}</span>`:''}
@@ -1962,14 +2068,293 @@ function prefillPart(code,nombre,org,monto){setTab('participaciones',document.qu
 function setTab(name,el){
   document.querySelectorAll('#main-tabs .tab').forEach(t=>t.classList.remove('active'));
   if(el&&el.classList)el.classList.add('active');
-  ['top10','empresas','simulador','historial','riesgo','participaciones','alertas','heatmap','bases','historial-mercado'].forEach(t=>{const e=document.getElementById('tab-'+t);if(e)e.style.display=t===name?'block':'none';});
+  ['top10','empresas','simulador','historial','riesgo','participaciones','alertas','heatmap','bases','historial-mercado','compraagil'].forEach(t=>{const e=document.getElementById('tab-'+t);if(e)e.style.display=t===name?'block':'none';});
   if(name==='empresas')renderEmpresasList();
+  if(name==='compraagil')caInit();
 }
 function setFilter(el,f){document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');currentFilter=f;renderList();}
 
 // ═══════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// MÓDULO COMPRA ÁGIL (API v2 vía proxy Netlify)
+// 🟢 datos reales · 🟡 análisis de caché local · 🔵 IA
+// ═══════════════════════════════════════════════════════
+const CA_PROXY_DEFAULT = 'https://compraagil-pro.netlify.app/.netlify/functions';
+function caProxy(){ return (localStorage.getItem('ca_proxy')||CA_PROXY_DEFAULT).replace(/\/+$/,''); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const CA_REGIONES = {1:'Tarapacá',2:'Antofagasta',3:'Atacama',4:'Coquimbo',5:'Valparaíso',6:"O'Higgins",7:'Maule',8:'Biobío',9:'Araucanía',10:'Los Lagos',11:'Aysén',12:'Magallanes',13:'Metropolitana',14:'Los Ríos',15:'Arica y Parinacota',16:'Ñuble'};
+let caCache = []; try{ caCache = JSON.parse(localStorage.getItem('ca_cache')||'[]'); }catch(e){ caCache=[]; }
+let caItems = [], caSel = null, caQuota429 = false;
+
+function caSaveCache(){ caCache = caCache.slice(-500); try{ localStorage.setItem('ca_cache', JSON.stringify(caCache)); }catch(e){ console.warn('ca_cache lleno', e); } }
+
+async function caFetch(params){
+  const u = new URL(caProxy()+'/compra-agil');
+  Object.entries(params).forEach(([k,v])=>{ if(v!==undefined&&v!=='') u.searchParams.set(k,v); });
+  const r = await fetch(u.toString());
+  if(r.status===429){ caQuota429=true; throw new Error('Cuota diaria de Compra Ágil agotada (429). Se renueva mañana; el historial ya guardado sigue disponible.'); }
+  if(r.status===401||r.status===403) throw new Error('Ticket inválido o sin permiso ('+r.status+'). Revisa MP_TICKET en Netlify.');
+  if(r.status===404) throw new Error('El proxy no responde (404). Revisa la URL del proxy.');
+  if(!r.ok) throw new Error('Error del proxy: '+r.status);
+  const d = await r.json();
+  if(d.success==='NOK') throw new Error(d.errors?.[0]?.mensaje||'Error de la API');
+  return d.payload;
+}
+async function caFetchDet(codigo){
+  try{
+    const r = await fetch(caProxy()+'/compra-agil-detalle?codigo='+encodeURIComponent(codigo));
+    if(r.status===429){ caQuota429=true; return null; }
+    if(!r.ok) return null;
+    const d = await r.json(); return d.payload||null;
+  }catch(e){ return null; }
+}
+function caEsGanador(p){ return !!(p.seleccion?.proveedor_seleccionado || p.estado_por_comprador==='SELECCIONADO'); }
+function caMonto(n){ return n>0 ? '$'+Math.round(n).toLocaleString('es-CL') : '—'; }
+
+function caInit(){
+  const emp = getActiveEmpresa();
+  document.getElementById('ca-proxy-input').value = caProxy();
+  const kws = (emp.keywords||'').split(/[\n,]/).map(k=>k.trim()).filter(Boolean);
+  document.getElementById('ca-kw-chips').innerHTML = kws.length
+    ? kws.map(k=>`<span class="chip" onclick="caPickKw(this)">${esc(k)}</span>`).join('')
+    : '<span style="font-size:10px;color:#aaa;">Esta empresa no tiene keywords. Agrégalas en Mis empresas.</span>';
+  const r = document.getElementById('ca-region');
+  if(!r.options.length){
+    r.innerHTML = '<option value="">Todo Chile</option>'+Object.entries(CA_REGIONES).map(([k,v])=>`<option value="${k}">${k} · ${v}</option>`).join('');
+  }
+  caRefreshMetrics(); caRenderCompetidores(); caRenderPrecios();
+}
+function caPickKw(el){
+  document.querySelectorAll('#ca-kw-chips .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ca-q').value = el.textContent;
+  document.getElementById('ca-hq').value = el.textContent;
+}
+function caSaveProxy(){
+  const v = document.getElementById('ca-proxy-input').value.trim();
+  if(v) localStorage.setItem('ca_proxy', v); else localStorage.removeItem('ca_proxy');
+  document.getElementById('ca-msg').innerHTML = '<div class="ai-box ai-green">Proxy guardado: '+esc(caProxy())+'</div>';
+}
+function caSetTab(name, el){
+  document.querySelectorAll('#ca-inner-tabs .inner-tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  ['activas','historial','competidores','precios'].forEach(t=>{ const e=document.getElementById('ca-tab-'+t); if(e) e.style.display = t===name?'block':'none'; });
+  if(name==='competidores') caRenderCompetidores();
+  if(name==='precios') caRenderPrecios();
+}
+function caRefreshMetrics(){
+  document.getElementById('ca-m-cache').textContent = caCache.length;
+  const prov = new Set(caCache.filter(a=>a.ganador).map(a=>a.rutGanador||a.ganador));
+  document.getElementById('ca-m-prov').textContent = prov.size;
+}
+
+function caScore(ca, emp, q){
+  let s = 35;
+  const texto = (ca.nombre||'').toLowerCase();
+  const kws = (emp.keywords||'').split(/[\n,]/).map(k=>k.trim().toLowerCase()).filter(Boolean);
+  if(q && texto.includes(q.toLowerCase())) s += 10;
+  s += Math.min(25, kws.filter(k=>texto.includes(k)).length*8);
+  const monto = ca.montos?.monto_disponible_clp||0;
+  if(monto>0 && monto<=3000000) s += 15; else if(monto>3000000 && monto<=8000000) s += 10;
+  const of = ca.resumen?.total_ofertas_recibidas||0;
+  if(of===0) s += 10; else if(of<=2) s += 5;
+  return Math.min(95, Math.max(15, s));
+}
+
+async function caBuscarActivas(){
+  const q = document.getElementById('ca-q').value.trim();
+  const region = document.getElementById('ca-region').value;
+  const c = document.getElementById('ca-result');
+  if(!q){ c.innerHTML='<div class="ai-box ai-amber">Elige o escribe una keyword (una a la vez).</div>'; return; }
+  c.innerHTML='<div class="loading"><span class="spinner"></span>Buscando en Compra Ágil...</div>';
+  document.getElementById('ca-detail').innerHTML='';
+  try{
+    const p = await caFetch({q, estado:'publicada', region, tamano_pagina:50, numero_pagina:1});
+    const emp = getActiveEmpresa();
+    caItems = (p.items||[]).map(ca=>({...ca,_score:caScore(ca,emp,q)})).sort((a,b)=>b._score-a._score);
+    const total = p.paginacion?.total_resultados ?? caItems.length;
+    document.getElementById('ca-m-act').textContent = total;
+    document.getElementById('ca-m-rel').textContent = caItems.filter(x=>x._score>=60).length;
+    if(!caItems.length){ c.innerHTML='<div class="loading">Sin Compras Ágiles publicadas para "'+esc(q)+'"'+(region?' en la región '+esc(CA_REGIONES[region]):'')+'.</div>'; return; }
+    c.innerHTML = `<div style="font-size:10px;color:#888;margin-bottom:.6rem;">🟢 ${total} resultados · mostrando ${caItems.length} · "${esc(q)}"</div>` + caItems.map((ca,i)=>{
+      const s=ca._score, cls=s>=70?'sh':s>=50?'sm':'sl';
+      const monto=ca.montos?.monto_disponible_clp||0;
+      const cierre=ca.fechas?.fecha_cierre?new Date(ca.fechas.fecha_cierre).toLocaleString('es-CL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+      const of=ca.resumen?.total_ofertas_recibidas||0;
+      return `<div class="licit-card" onclick="caSelect(${i})">
+        <div class="licit-header"><div class="licit-title">${i+1}. ${esc(ca.nombre||'Sin nombre')}</div><span class="score-badge ${cls}">${s}%</span></div>
+        <div class="licit-meta"><span>${esc(ca.institucion?.organismo_comprador||ca.institucion?.nombre_institucion||'—')}</span><span>Cierre: ${cierre}</span><span>${caMonto(monto)}</span><span style="color:#aaa;">ID: ${esc(ca.codigo)}</span></div>
+        <div style="display:flex;gap:3px;flex-wrap:wrap;"><span class="tag tag-gray">${of>0?of+' oferta(s)':'sin ofertas'}</span><span class="tag tag-gray">${esc(ca.institucion?.nombre_region||CA_REGIONES[ca.institucion?.region]||'—')}</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${s}%;background:${s>=70?'#639922':s>=50?'#BA7517':'#E24B4A'}"></div></div>
+      </div>`;
+    }).join('');
+  }catch(e){ c.innerHTML='<div class="ai-box ai-red">'+esc(e.message)+'</div>'; }
+}
+
+async function caSelect(i){
+  caSel = caItems[i]; if(!caSel) return;
+  const box = document.getElementById('ca-detail');
+  box.innerHTML = '<div class="panel" style="margin-top:.8rem;"><div class="loading"><span class="spinner"></span>Cargando detalle...</div></div>';
+  const det = await caFetchDet(caSel.codigo);
+  caRenderDetalle(caSel, det);
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function caRenderDetalle(ca, d0){
+  const d = d0||{};
+  const monto = d.presupuesto?.monto_disponible_clp || ca.montos?.monto_disponible_clp || 0;
+  const prods = d.productos_solicitados||[];
+  const provs = d.proveedores_cotizando||[];
+  const cierre = (d.fechas?.fecha_cierre||ca.fechas?.fecha_cierre) ? new Date(d.fechas?.fecha_cierre||ca.fechas.fecha_cierre).toLocaleString('es-CL') : '—';
+  const nd = '<span class="di-nd">No disponible</span>';
+  const prodsHTML = prods.length ? `<div class="sec-title" style="margin-top:.7rem;">Productos solicitados <span class="fuente-real">🟢</span></div>
+    <div style="overflow-x:auto;"><table style="width:100%;font-size:11px;border-collapse:collapse;"><thead><tr style="text-align:left;color:#888;"><th style="padding:4px;">Producto</th><th>Cant.</th><th>Unidad</th></tr></thead><tbody>${prods.map(p=>`<tr style="border-top:1px solid #eee;"><td style="padding:4px;">${esc(p.nombre)}</td><td>${esc(p.cantidad)}</td><td>${esc(p.unidad_medida||'—')}</td></tr>`).join('')}</tbody></table></div>` : '';
+  const provHTML = provs.length ? `<div class="sec-title" style="margin-top:.7rem;">Proveedores cotizando (${provs.length}) <span class="fuente-real">🟢</span></div>
+    <div style="overflow-x:auto;"><table style="width:100%;font-size:11px;border-collapse:collapse;"><thead><tr style="text-align:left;color:#888;"><th style="padding:4px;">Proveedor</th><th>RUT</th><th>EMT</th><th>Total</th></tr></thead><tbody>${provs.map(p=>`<tr style="border-top:1px solid #eee;"><td style="padding:4px;${caEsGanador(p)?'font-weight:700;color:#3B6D11;':''}">${esc(p.razon_social||'—')}${caEsGanador(p)?' ✓':''}</td><td>${esc(p.rut_proveedor||'—')}</td><td>${p.es_emt?'<span class="tag tag-ok">EMT</span>':'—'}</td><td>${caMonto(p.monto_total||p.valor_neto||0)}</td></tr>`).join('')}</tbody></table></div>` : '';
+  document.getElementById('ca-detail').innerHTML = `<div class="panel" style="margin-top:.8rem;">
+    <div style="display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-bottom:.5rem;"><div style="font-size:13px;font-weight:700;flex:1;">${esc(ca.nombre)}</div>
+    <a href="https://compra-agil.mercadopublico.cl/" target="_blank" style="font-size:10px;color:#185FA5;">Portal Compra Ágil →</a></div>
+    <div style="font-size:10px;color:#888;margin-bottom:.6rem;">ID: <b>${esc(ca.codigo)}</b></div>
+    ${d.descripcion?`<div style="font-size:11px;color:#555;line-height:1.6;margin-bottom:.7rem;">${esc(String(d.descripcion).slice(0,400))}</div>`:''}
+    <div class="data-grid">
+      <div class="data-item"><div class="di-label">Organismo</div><div class="di-val">${esc(d.institucion?.organismo_comprador||ca.institucion?.organismo_comprador||'')||nd}</div></div>
+      <div class="data-item"><div class="di-label">Monto disponible</div><div class="di-val green">${monto>0?caMonto(monto):nd}</div></div>
+      <div class="data-item"><div class="di-label">Cierre</div><div class="di-val">${cierre}</div></div>
+      <div class="data-item"><div class="di-label">Cotizaciones</div><div class="di-val">${provs.length||ca.resumen?.total_ofertas_recibidas||0}</div></div>
+      <div class="data-item"><div class="di-label">Plazo entrega</div><div class="di-val">${d.entrega?.plazo_entrega_dias?esc(d.entrega.plazo_entrega_dias)+' días':nd}</div></div>
+      <div class="data-item"><div class="di-label">Región</div><div class="di-val">${esc(ca.institucion?.nombre_region||'')||nd}</div></div>
+    </div>${prodsHTML}${provHTML}
+    ${d0?'':'<div class="ai-box ai-amber" style="margin-top:.6rem;">No se pudo cargar el detalle (¿cuota agotada?). Se muestran solo datos del listado.</div>'}
+  </div>`;
+}
+
+// ── Historial de adjudicaciones ──
+async function caBuscarHistorial(){
+  const q = document.getElementById('ca-hq').value.trim();
+  const dias = parseInt(document.getElementById('ca-hdias').value)||30;
+  const maxDet = parseInt(document.getElementById('ca-hmax').value)||15;
+  const region = document.getElementById('ca-hregion').value;
+  const c = document.getElementById('ca-hresult');
+  if(!q){ c.innerHTML='<div class="ai-box ai-amber">Elige o escribe una keyword.</div>'; return; }
+  caQuota429=false;
+  c.innerHTML='<div class="loading"><span class="spinner"></span>Buscando adjudicaciones...</div>';
+  const hasta=new Date(), desde=new Date(); desde.setDate(desde.getDate()-dias);
+  const iso=d=>d.toISOString().replace(/\.\d{3}Z/,'Z');
+  try{
+    const p = await caFetch({q, estado:'proveedor_seleccionado', publicado_desde:iso(desde), publicado_hasta:iso(hasta), region, tamano_pagina:50, numero_pagina:1});
+    const items = p.items||[];
+    if(!items.length){ c.innerHTML='<div class="loading">Sin adjudicaciones para "'+esc(q)+'" en '+dias+' días.</div>'; return; }
+    let nuevos=0, delCache=0, sinDetalle=0;
+    for(let i=0;i<items.length;i++){
+      const ca=items[i];
+      const ya = caCache.find(x=>x.codigo===ca.codigo);
+      if(ya){ if(!(ya.qs||[]).includes(q)) (ya.qs=ya.qs||[]).push(q); delCache++; continue; }
+      if(nuevos>=maxDet || caQuota429){ sinDetalle++; continue; }
+      c.innerHTML=`<div class="loading"><span class="spinner"></span>Detalle ${nuevos+1}/${Math.min(maxDet,items.length-delCache)} · ${esc(ca.codigo)}</div>`;
+      await new Promise(r=>setTimeout(r,350));
+      const det = await caFetchDet(ca.codigo);
+      if(!det){ sinDetalle++; continue; }
+      const prov = det.proveedores_cotizando||[];
+      let g = prov.find(caEsGanador); if(!g && prov.length===1) g=prov[0];
+      caCache.push({
+        codigo:ca.codigo, nombre:ca.nombre||'', qs:[q],
+        organismo:ca.institucion?.organismo_comprador||det.institucion?.organismo_comprador||'',
+        region:ca.institucion?.nombre_region||'',
+        monto:det.presupuesto?.monto_disponible_clp||ca.montos?.monto_disponible_clp||0,
+        nOferentes:prov.length,
+        ganador:g?.razon_social||'', rutGanador:g?.rut_proveedor||'', esEMT:!!g?.es_emt,
+        montoGanador:g?(g.monto_total||g.valor_neto||0):0,
+        fecha:(ca.fechas?.fecha_publicacion||'').slice(0,10),
+        productos:(det.productos_solicitados||[]).map(x=>({nombre:x.nombre,cantidad:x.cantidad,unidad:x.unidad_medida})),
+        cotizaciones:prov.map(x=>({razon:x.razon_social,rut:x.rut_proveedor,monto:x.monto_total||x.valor_neto||0,ganador:caEsGanador(x)}))
+      });
+      nuevos++;
+    }
+    caSaveCache(); caRefreshMetrics();
+    const rel = caCache.filter(a=>(a.qs||[]).includes(q));
+    c.innerHTML = `<div style="font-size:10px;color:#888;margin-bottom:.5rem;">🟢 ${items.length} adjudicaciones encontradas (${dias} días) · ${nuevos} detalles nuevos · ${delCache} ya en caché${sinDetalle?` · ${sinDetalle} sin detalle (límite o cuota)`:''}</div>`
+      + (caQuota429?'<div class="ai-box ai-amber">Se agotó la cuota durante la carga. Lo cargado quedó guardado; continúa mañana.</div>':'')
+      + caTablaAdj(rel)
+      + `<div style="margin-top:.7rem;"><button class="btn btn-primary btn-sm" onclick="caAnalizarIA('${esc(q).replace(/'/g,'&#39;')}')">🔵 Analizar mercado con IA</button></div><div id="ca-ia" style="margin-top:.6rem;"></div>`;
+  }catch(e){ c.innerHTML='<div class="ai-box ai-red">'+esc(e.message)+'</div>'; }
+}
+function caTablaAdj(arr){
+  return `<div style="overflow-x:auto;"><table style="width:100%;font-size:11px;border-collapse:collapse;"><thead><tr style="text-align:left;color:#888;"><th style="padding:4px;">ID</th><th>Nombre</th><th>Organismo</th><th>Ganador</th><th>Monto adj.</th><th>Of.</th><th>Fecha</th></tr></thead><tbody>${arr.map(a=>`<tr style="border-top:1px solid #eee;"><td style="padding:4px;color:#aaa;">${esc(a.codigo)}</td><td title="${esc(a.nombre)}">${esc((a.nombre||'').slice(0,38))}</td><td>${esc((a.organismo||'—').slice(0,24))}</td><td style="font-weight:600;color:#3B6D11;">${esc(a.ganador||'no identificado')}${a.esEMT?' <span class="tag tag-ok">EMT</span>':''}</td><td>${caMonto(a.montoGanador)}</td><td style="text-align:center;">${a.nOferentes||'—'}</td><td>${esc(a.fecha||'')}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+// ── Competidores y precios (🟡 análisis sobre caché) ──
+function caFiltroKw(selId){ const v=document.getElementById(selId)?.value||''; return v ? caCache.filter(a=>(a.qs||[]).includes(v)) : caCache; }
+function caFillKwSelects(){
+  const kws=[...new Set(caCache.flatMap(a=>a.qs||[]))];
+  ['ca-ckw','ca-pkw'].forEach(id=>{ const s=document.getElementById(id); if(!s) return; const cur=s.value;
+    s.innerHTML='<option value="">Todas las keywords</option>'+kws.map(k=>`<option ${k===cur?'selected':''}>${esc(k)}</option>`).join(''); });
+}
+function caRenderCompetidores(){
+  caFillKwSelects();
+  const data = caFiltroKw('ca-ckw').filter(a=>a.ganador);
+  const g={};
+  data.forEach(a=>{ const k=a.rutGanador||a.ganador; if(!g[k]) g[k]={n:a.ganador,rut:a.rutGanador,c:0,m:0,emt:a.esEMT,orgs:new Set()}; g[k].c++; g[k].m+=a.montoGanador||0; g[k].orgs.add(a.organismo); });
+  const arr=Object.values(g).sort((a,b)=>b.c-a.c);
+  const box=document.getElementById('ca-comp-result');
+  if(!arr.length){ box.innerHTML='<div style="font-size:11px;color:#aaa;">Sin datos. Busca adjudicaciones en la pestaña Historial.</div>'; return; }
+  const max=arr[0].c;
+  box.innerHTML=`<div style="font-size:10px;color:#888;margin-bottom:.5rem;"><span class="fuente-analisis">🟡 Análisis</span> sobre ${data.length} adjudicaciones reales en caché</div>`+arr.slice(0,30).map((x,i)=>`<div class="alert-card"><div style="flex:1;"><div style="font-size:12px;font-weight:700;">${i+1}. ${esc(x.n)} ${x.emt?'<span class="tag tag-ok">EMT</span>':''}</div><div style="font-size:10px;color:#888;">RUT ${esc(x.rut||'—')} · ${x.orgs.size} organismo(s)</div><div class="progress-bar"><div class="progress-fill" style="width:${Math.round(x.c/max*100)}%;background:#185FA5;"></div></div></div><div style="text-align:right;"><div style="font-size:14px;font-weight:700;color:#185FA5;">${x.c}</div><div style="font-size:10px;color:#888;">adj. · ${caMonto(x.m)}</div></div></div>`).join('');
+}
+function caRenderPrecios(){
+  caFillKwSelects();
+  const data = caFiltroKw('ca-pkw').filter(a=>a.montoGanador>0);
+  const box=document.getElementById('ca-prec-result');
+  if(!data.length){ box.innerHTML='<div style="font-size:11px;color:#aaa;">Sin datos de precios. Busca adjudicaciones primero.</div>'; return; }
+  const m=data.map(a=>a.montoGanador).sort((a,b)=>a-b);
+  const med=m[Math.floor(m.length/2)], prom=m.reduce((s,x)=>s+x,0)/m.length;
+  const rat=data.filter(a=>a.monto>0).map(a=>a.montoGanador/a.monto);
+  const ratProm=rat.length?rat.reduce((s,x)=>s+x,0)/rat.length:0;
+  const of=data.filter(a=>a.nOferentes>0); const ofProm=of.length?of.reduce((s,a)=>s+a.nOferentes,0)/of.length:0;
+  const minCot = data.map(a=>{ const c=(a.cotizaciones||[]).filter(x=>x.monto>0).map(x=>x.monto); return c.length>1?Math.max(...c)/Math.min(...c):0; }).filter(x=>x>0);
+  const disp = minCot.length? minCot.reduce((s,x)=>s+x,0)/minCot.length : 0;
+  box.innerHTML=`<div style="font-size:10px;color:#888;margin-bottom:.5rem;"><span class="fuente-analisis">🟡 Análisis</span> sobre ${data.length} adjudicaciones reales con monto</div>
+  <div class="data-grid">
+    <div class="data-item"><div class="di-label">Mínimo adjudicado</div><div class="di-val">${caMonto(m[0])}</div></div>
+    <div class="data-item"><div class="di-label">Mediana</div><div class="di-val green">${caMonto(med)}</div></div>
+    <div class="data-item"><div class="di-label">Promedio</div><div class="di-val">${caMonto(prom)}</div></div>
+    <div class="data-item"><div class="di-label">Máximo</div><div class="di-val">${caMonto(m[m.length-1])}</div></div>
+    <div class="data-item"><div class="di-label">Adjudicado / presupuesto</div><div class="di-val amber">${ratProm?Math.round(ratProm*100)+'%':'—'}</div></div>
+    <div class="data-item"><div class="di-label">Oferentes promedio</div><div class="di-val">${ofProm?ofProm.toFixed(1):'—'}</div></div>
+    <div class="data-item"><div class="di-label">Dispersión cotizaciones (máx/mín)</div><div class="di-val">${disp?disp.toFixed(2)+'×':'—'}</div></div>
+  </div>
+  <div class="sec-title" style="margin-top:.7rem;">Productos más adjudicados</div>
+  <div style="font-size:11px;color:#555;">${caTopProductos(data)}</div>`;
+}
+function caTopProductos(data){
+  const c={}; data.forEach(a=>(a.productos||[]).forEach(p=>{ const k=(p.nombre||'').trim().toLowerCase(); if(k) c[k]=(c[k]||0)+1; }));
+  const t=Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  return t.length? t.map(([k,v])=>`<span class="tag tag-gray" style="margin:2px;">${esc(k)} · ${v}</span>`).join('') : '—';
+}
+function caExportCSV(){
+  if(!caCache.length) return;
+  const cols=['codigo','nombre','organismo','region','monto','nOferentes','ganador','rutGanador','esEMT','montoGanador','fecha'];
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const csv=[cols.join(',')].concat(caCache.map(a=>cols.map(c=>q(a[c])).join(','))).join('\n');
+  const b=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}); const u=URL.createObjectURL(b);
+  const l=document.createElement('a'); l.href=u; l.download='compra_agil_historial.csv'; l.click(); URL.revokeObjectURL(u);
+}
+function caLimpiarCache(){ if(!confirm('¿Borrar el historial de Compra Ágil guardado en este navegador?')) return; caCache=[]; caSaveCache(); caRefreshMetrics(); caRenderCompetidores(); caRenderPrecios(); }
+async function caAnalizarIA(q){
+  const c=document.getElementById('ca-ia'); const emp=getActiveEmpresa();
+  const data=caCache.filter(a=>(a.qs||[]).includes(q)); const g={};
+  data.filter(a=>a.ganador).forEach(a=>{ g[a.ganador]=g[a.ganador]||{c:0,m:0}; g[a.ganador].c++; g[a.ganador].m+=a.montoGanador||0; });
+  const top=Object.entries(g).sort((a,b)=>b[1].c-a[1].c).slice(0,8).map(([n,v])=>`${n}:${v.c}adj/$${Math.round(v.m/1000)}K`).join(' | ');
+  const mm=data.filter(a=>a.montoGanador>0).map(a=>a.montoGanador); const prom=mm.length?Math.round(mm.reduce((s,x)=>s+x,0)/mm.length):0;
+  c.innerHTML='<div class="loading"><span class="spinner"></span>Analizando...</div>';
+  try{
+    const t=await callAI(`[DATOS REALES API Compra Ágil Chile] Keyword:"${q}" | ${data.length} adjudicaciones | monto ganador promedio $${Math.round(prom/1000)}K | ganadores: ${top||'sin datos'} | Empresa: ${emp.nombre} (${emp.rubro})
+[PREDICCIÓN] 1) ¿Quién domina? 2) ¿Es competible? 3) Precio sugerido para ganar 4) Estrategia concreta.`,420);
+    c.innerHTML='<div class="sec-title"><span class="fuente-prediccion">🔵 Predicción IA</span></div><div class="ai-box ai-purple">'+esc(t).replace(/\n/g,'<br>')+'</div>';
+  }catch(e){ c.innerHTML='<div class="ai-box ai-red">'+esc(e.message)+'</div>'; }
+}
+
 try {
   renderEmpresaSelector();
   renderParticipaciones();
