@@ -140,7 +140,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 <body>
 
 <div class="topbar">
-  <div><h1>LicitaInteligente Pro</h1><div style="font-size:10px;color:#888;">Mercado Público Chile · v8</div></div>
+  <div><h1>LicitaInteligente Pro</h1><div style="font-size:10px;color:#888;">Mercado Público Chile · v9</div></div>
   <div class="topbar-right">
     <div class="empresa-selector">
       <div class="empresa-dot" id="empresa-dot" style="background:#185FA5;"></div>
@@ -204,7 +204,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
     <div id="filters-container" class="filters" style="margin-bottom:0;flex:1;"></div>
     <div style="display:flex;gap:5px;align-items:center;">
       <span style="font-size:10px;color:#888;">Mostrar:</span>
-      <select id="ca-sweep-region" title="Región para el barrido de Compra Ágil (se aplica en el próximo barrido)" style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid #e0e0d8;"><option value="">Compra Ágil: todo Chile</option><option value="15">Compra Ágil: Arica y Parinacota</option><option value="1">Compra Ágil: Tarapacá</option><option value="2">Compra Ágil: Antofagasta</option><option value="3">Compra Ágil: Atacama</option><option value="4">Compra Ágil: Coquimbo</option><option value="5">Compra Ágil: Valparaíso</option><option value="13">Compra Ágil: Metropolitana</option><option value="off">Compra Ágil: desactivada</option></select>
+      
       <select id="top-n-select" onchange="renderList()" style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid #e0e0d8;">
         <option value="10">Top 10</option>
         <option value="20">Top 20</option>
@@ -445,9 +445,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
   </div>
   <div id="ca-tab-activas">
     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:.8rem;">
-      <input type="text" id="ca-q" placeholder="keyword (ej: zunchos, EPP, video)" style="flex:1;min-width:180px;padding:7px 9px;border-radius:8px;border:1px solid #e0e0d8;font-size:12px;" onkeydown="if(event.key==='Enter')caBuscarActivas()"/>
-      <select id="ca-region" style="padding:7px;border-radius:8px;border:1px solid #e0e0d8;font-size:11px;"></select>
-      <button class="btn btn-primary" onclick="caBuscarActivas()">Buscar ↗</button>
+      <input type="text" id="ca-q" placeholder="filtrar resultados (ej: zunchos, EPP)" style="flex:1;min-width:180px;padding:7px 9px;border-radius:8px;border:1px solid #e0e0d8;font-size:12px;" oninput="caRenderActivas()"/>
+      <select id="ca-region" style="padding:7px;border-radius:8px;border:1px solid #e0e0d8;font-size:11px;" onchange="caBarrerActivas()"></select>
+      <select id="ca-solo" onchange="caRenderActivas()" style="padding:7px;border-radius:8px;border:1px solid #e0e0d8;font-size:11px;"><option value="rel">Solo relevantes para la empresa</option><option value="todas">Todas</option></select>
+      <button class="btn btn-primary" onclick="caBarrerActivas()">↻ Barrer Compra Ágil</button>
     </div>
     <div id="ca-result"></div><div id="ca-detail"></div>
   </div>
@@ -933,15 +934,10 @@ async function fetchLicitaciones() {
         </div>`;
     }
 
-    const caRes = await caBarridoAbierto();
-    const msgCA = caRes.info.off ? '' : caRes.info.ok
-      ? `<div style="background:#E6F1FB;border:1px solid #B5D4F4;border-radius:8px;padding:.6rem .8rem;font-size:11px;color:#185FA5;margin-bottom:.8rem;">🟢 Compra Ágil abierta · ${caRes.info.total} publicadas (3 días${caRes.info.paginas>=CA_SWEEP_PAGES?', tope de '+CA_SWEEP_PAGES+' páginas alcanzado':''}) · <b>${caRes.lics.length}</b> vigentes añadidas</div>`
-      : `<div style="background:#FCEBEB;border:1px solid #F7C1C1;border-radius:8px;padding:.6rem .8rem;font-size:11px;color:#791F1F;margin-bottom:.8rem;">⚠ Compra Ágil no se pudo barrer: ${esc(caRes.info.error)}</div>`;
-    document.getElementById('error-container').innerHTML += msgCA;
-    processLics(aRenderizar.concat(caRes.lics), todasLics.length + caRes.lics.length);
+    processLics(aRenderizar, todasLics.length);
     document.getElementById('api-status').textContent='API en vivo';
     document.getElementById('api-status').className='badge badge-live';
-    enriquecerTop(30);
+    mostrarBotonDetalle();
   }
 
   document.getElementById('barrido-bar').style.width='100%';
@@ -955,6 +951,14 @@ async function fetchLicitaciones() {
 // por eso se pide solo para las mejor puntuadas y se guarda en caché 12 h.
 // ═══════════════════════════════════════════════════════
 let enriqueciendo = false;
+function mostrarBotonDetalle(){
+  const sinDet = allLics.filter(l => !l._fuenteDetalle).length;
+  const st = document.getElementById('enrich-status');
+  if (!st) return;
+  st.innerHTML = sinDet
+    ? `<div style="font-size:10px;color:#888;margin-bottom:.5rem;">El listado de MP no trae organismo ni monto. <button class="btn btn-sm" onclick="enriquecerTop(30)">Cargar detalle de las 30 primeras</button> <span style="color:#aaa;">(30 llamadas de tu cuota MP; quedan en caché 12 h)</span></div>`
+    : '';
+}
 async function enriquecerTop(n) {
   if (enriqueciendo) return;
   enriqueciendo = true; mpCuota429 = false;
@@ -1053,9 +1057,6 @@ function renderFilters() {
     if(count===0)return;
     chips+=`<span class="chip ${srDef.color==='agri'?'agri-chip':srDef.color==='salud'?'salud-chip':srDef.color==='industrial'?'industrial-chip':''}" onclick="setFilter(this,'${sr}')">${srDef.label} (${count})</span>`;
   });
-  const nCA = allLics.filter(l=>l._ca).length;
-  chips+=`<span class="chip" onclick="setFilter(this,'ca')">Compra Ágil (${nCA})</span>`;
-  chips+=`<span class="chip" onclick="setFilter(this,'lp')">Licitaciones (${allLics.length-nCA})</span>`;
   chips+=`<span class="chip" onclick="setFilter(this,'alerts')">Con alerta</span>`;
   chips+=`<span class="chip" onclick="setFilter(this,'riesgo')">Riesgo detectado</span>`;
   c.innerHTML = chips;
@@ -1403,6 +1404,7 @@ function switchEmpresa(id){
   localStorage.setItem('licit_active_empresa',id);
   document.getElementById('empresa-dot').style.background=getActiveEmpresa().color;
   if(allLics.length) processLics(allLics, allLics.length);
+  if(document.getElementById('tab-compraagil')?.style.display==='block') caInit();
 }
 
 function renderEmpresasList(){
@@ -2106,8 +2108,8 @@ async function caFetch(params){
   const u = new URL(caProxy()+'/compra-agil');
   Object.entries(params).forEach(([k,v])=>{ if(v!==undefined&&v!=='') u.searchParams.set(k,v); });
   let r;
-  for(let intento=0; intento<3; intento++){
-    if(intento>0) await new Promise(x=>setTimeout(x, intento*2000));
+  for(let intento=0; intento<2; intento++){
+    if(intento>0) await new Promise(x=>setTimeout(x, 2000));
     r = await fetch(u.toString());
     if(![502,503,504].includes(r.status)) break;
   }
@@ -2115,7 +2117,7 @@ async function caFetch(params){
   if([502,503,504].includes(r.status)){
     let cuerpo=''; try{ cuerpo=(await r.text()).slice(0,200); }catch(e){}
     console.warn('[CompraÁgil] '+r.status+' URL:', u.toString(), 'Cuerpo:', cuerpo);
-    throw new Error('El proxy o la API de Compra Ágil respondió '+r.status+' tras 3 intentos. '+(cuerpo?('Respuesta: '+cuerpo):'')+' (la URL exacta quedó en la consola, F12).');
+    throw new Error('El proxy o la API de Compra Ágil respondió '+r.status+' tras 2 intentos. '+(cuerpo?('Respuesta: '+cuerpo):'')+' (la URL exacta quedó en la consola, F12).');
   }
   if(r.status===401||r.status===403) throw new Error('Ticket inválido o sin permiso ('+r.status+'). Revisa MP_TICKET en Netlify.');
   if(r.status===404) throw new Error('El proxy no responde (404). Revisa la URL del proxy.');
@@ -2145,14 +2147,64 @@ function caInit(){
   const r = document.getElementById('ca-region');
   if(!r.options.length){
     r.innerHTML = '<option value="">Todo Chile</option>'+Object.entries(CA_REGIONES).map(([k,v])=>`<option value="${k}">${k} · ${v}</option>`).join('');
+    try{ const sv=localStorage.getItem('ca_region'); if(sv!==null) r.value=sv; }catch(e){}
   }
   caRefreshMetrics(); caRenderCompetidores(); caRenderPrecios();
+  // Barrido solo cuando se consulta la pestaña; se reutiliza 15 min
+  if(!caBarridoTs || Date.now()-caBarridoTs > 15*60*1000) caBarrerActivas();
+  else caRenderActivas();
+}
+let caBarridoTs = 0, caBarriendo = false, caAbiertas = [], caInfo = null;
+async function caBarrerActivas(){
+  if(caBarriendo) return;
+  caBarriendo = true;
+  document.getElementById('ca-detail').innerHTML='';
+  const res = await caBarridoAbierto();
+  caAbiertas = res.lics.map(l=>l._caRaw); caInfo = res.info;
+  if(res.info.ok) caBarridoTs = Date.now();
+  caBarriendo = false;
+  caRenderActivas();
+}
+function caRenderActivas(){
+  const c = document.getElementById('ca-result');
+  if(caBarriendo) return;
+  if(caInfo && !caInfo.ok && !caAbiertas.length){ c.innerHTML='<div class="ai-box ai-red">'+esc(caInfo.error)+'</div><button class="btn btn-sm" onclick="caBarrerActivas()">Reintentar</button>'; return; }
+  const emp = getActiveEmpresa();
+  const f = (document.getElementById('ca-q').value||'').trim().toLowerCase();
+  const solo = document.getElementById('ca-solo').value;
+  const kws = (emp.keywords||'').split(/[\n,]/).map(k=>k.trim().toLowerCase()).filter(Boolean);
+  let lista = caAbiertas.map(ca=>{
+    const t=(ca.nombre||'').toLowerCase();
+    return {...ca, _score:caScore(ca,emp,f), _match: kws.some(k=>t.includes(k))};
+  });
+  if(f) lista = lista.filter(ca=>(ca.nombre||'').toLowerCase().includes(f) || (ca.institucion?.organismo_comprador||'').toLowerCase().includes(f));
+  else if(solo==='rel') lista = lista.filter(ca=>ca._match);
+  lista.sort((a,b)=>b._score-a._score);
+  caItems = lista;
+  document.getElementById('ca-m-act').textContent = caAbiertas.length;
+  document.getElementById('ca-m-rel').textContent = caAbiertas.filter(ca=>kws.some(k=>(ca.nombre||'').toLowerCase().includes(k))).length;
+  const info = caInfo ? `🟢 ${caInfo.total} publicadas en 3 días${caInfo.paginas>=CA_SWEEP_PAGES?' (tope '+CA_SWEEP_PAGES*50+' revisadas)':''} · ${caAbiertas.length} vigentes · mostrando ${lista.length}${caBarridoTs?' · barrido '+new Date(caBarridoTs).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'}):''}` : '';
+  const aviso = caInfo && !caInfo.ok ? '<div class="ai-box ai-amber">Barrido incompleto: '+esc(caInfo.error)+'</div>' : '';
+  if(!lista.length){ c.innerHTML = `<div style="font-size:10px;color:#888;margin-bottom:.6rem;">${info}</div>${aviso}<div class="loading">${solo==='rel'&&!f?'Ninguna coincide con las keywords de la empresa. Cambia a «Todas».':'Sin resultados.'}</div>`; return; }
+  c.innerHTML = `<div style="font-size:10px;color:#888;margin-bottom:.6rem;">${info}</div>${aviso}` + lista.map((ca,i)=>{
+    const s=ca._score, cls=s>=70?'sh':s>=50?'sm':'sl';
+    const monto=ca.montos?.monto_disponible_clp||0;
+    const cierre=ca.fechas?.fecha_cierre?new Date(ca.fechas.fecha_cierre).toLocaleString('es-CL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+    const of=ca.resumen?.total_ofertas_recibidas||0;
+    return `<div class="licit-card" onclick="caSelect(${i})">
+      <div class="licit-header"><div class="licit-title">${i+1}. ${esc(ca.nombre||'Sin nombre')}</div><span class="score-badge ${cls}">${s}%</span></div>
+      <div class="licit-meta"><span>${esc(ca.institucion?.organismo_comprador||ca.institucion?.nombre_institucion||'—')}</span><span>Cierre: ${cierre}</span><span>${caMonto(monto)}</span><span style="color:#aaa;">ID: ${esc(ca.codigo)}</span></div>
+      <div style="display:flex;gap:3px;flex-wrap:wrap;"><span class="tag tag-gray">${of>0?of+' oferta(s)':'sin ofertas'}</span><span class="tag tag-gray">${esc(ca.institucion?.nombre_region||CA_REGIONES[ca.institucion?.region]||'—')}</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${s}%;background:${s>=70?'#639922':s>=50?'#BA7517':'#E24B4A'}"></div></div>
+    </div>`;
+  }).join('');
 }
 function caPickKw(el){
   document.querySelectorAll('#ca-kw-chips .chip').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('ca-q').value = el.textContent;
   document.getElementById('ca-hq').value = el.textContent;
+  caRenderActivas();
 }
 function caSaveProxy(){
   const v = document.getElementById('ca-proxy-input').value.trim();
@@ -2273,15 +2325,14 @@ function caNormalizar(ca){
 }
 async function caBarridoAbierto(){
   const info = {ok:false, total:0, paginas:0, error:''};
-  const region = document.getElementById('ca-sweep-region')?.value ?? '';
-  try{ localStorage.setItem('ca_sweep_region', region); }catch(e){}
-  if(region==='off') return {lics:[], info:{...info, off:true}};
+  const region = document.getElementById('ca-region')?.value ?? '';
+  try{ localStorage.setItem('ca_region', region); }catch(e){}
   const hasta=new Date(), desde=new Date(); desde.setDate(desde.getDate()-3);
   const iso=d=>d.toISOString().replace(/\.\d{3}Z/,'Z');
   let todos=[];
   try{
     for(let p=1; p<=CA_SWEEP_PAGES; p++){
-      document.getElementById('barrido-status').textContent = `Compra Ágil abierta: página ${p}…`;
+      document.getElementById('ca-result').innerHTML = `<div class="loading"><span class="spinner"></span>Barriendo Compra Ágil abierta · página ${p}…</div>`;
       if(p>1) await new Promise(r=>setTimeout(r,600));
       const pl = await caFetch({estado:'publicada', publicado_desde:iso(desde), publicado_hasta:iso(hasta), region, ordenar_por:'FechaPublicacion', tamano_pagina:50, numero_pagina:p});
       todos = todos.concat(pl.items||[]);
@@ -2432,7 +2483,6 @@ async function caAnalizarIA(q){
 }
 
 try {
-  { const sv=localStorage.getItem('ca_sweep_region'); const s=document.getElementById('ca-sweep-region'); if(s&&sv!==null) s.value=sv; }
   renderEmpresaSelector();
   renderParticipaciones();
   renderAlertas();
