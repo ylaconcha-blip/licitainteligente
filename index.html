@@ -140,7 +140,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 <body>
 
 <div class="topbar">
-  <div><h1>LicitaInteligente Pro</h1><div style="font-size:10px;color:#888;">Mercado Público Chile · v9</div></div>
+  <div><h1>LicitaInteligente Pro</h1><div style="font-size:10px;color:#888;">Mercado Público Chile · v10</div></div>
   <div class="topbar-right">
     <div class="empresa-selector">
       <div class="empresa-dot" id="empresa-dot" style="background:#185FA5;"></div>
@@ -175,27 +175,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 </div>
 
 <div class="metrics">
-  <div class="metric"><div class="metric-label">Licitaciones activas</div><div class="metric-value" id="m-total">—</div><div class="metric-sub">últimos 3 días</div></div>
+  <div class="metric"><div class="metric-label">Licitaciones activas</div><div class="metric-value" id="m-total">—</div><div class="metric-sub">vigentes barridas</div></div>
   <div class="metric"><div class="metric-label">Para empresa activa</div><div class="metric-value" id="m-oport" style="color:#185FA5;">—</div><div class="metric-sub">relevantes</div></div>
   <div class="metric"><div class="metric-label">Mejor score</div><div class="metric-value" id="m-max" style="color:#3B6D11;">—</div><div class="metric-sub">compatibilidad</div></div>
-  <div class="metric"><div class="metric-label">Con reclamos</div><div class="metric-value" id="m-reclamos" style="color:#E24B4A;">0</div><div class="metric-sub">organismos</div></div>
+  <div class="metric"><div class="metric-label">Con reclamos</div><div class="metric-value" id="m-reclamos" style="color:#E24B4A;">0</div><div class="metric-sub">licitaciones con detalle</div></div>
   <div class="metric"><div class="metric-label">Alertas</div><div class="metric-value" id="m-alerts">0</div><div class="metric-sub">configuradas</div></div>
-  <div class="metric"><div class="metric-label">Tasa éxito</div><div class="metric-value" id="m-tasa">—</div><div class="metric-sub">historial</div></div>
+  <div class="metric"><div class="metric-label">Tasa éxito</div><div class="metric-value" id="m-tasa">—</div><div class="metric-sub">empresa activa</div></div>
   <div class="metric"><div class="metric-label">Riesgo crítico</div><div class="metric-value" id="m-crit" style="color:#A32D2D;">0</div><div class="metric-sub">organismos</div></div>
 </div>
 
 <div class="tabs" id="main-tabs">
-  <div class="tab active" onclick="setTab('top10',this)">Top Licitaciones</div>
-  <div class="tab" onclick="setTab('empresas',this)">Mis empresas</div>
-  <div class="tab" onclick="setTab('simulador',this)">Simulador</div>
-  <div class="tab" onclick="setTab('historial',this)">Historial organismo</div>
-  <div class="tab" onclick="setTab('riesgo',this)">Radar de Riesgo</div>
-  <div class="tab" onclick="setTab('participaciones',this)">Participaciones</div>
-  <div class="tab" onclick="setTab('alertas',this)">Alertas</div>
-  <div class="tab" onclick="setTab('heatmap',this)">Mapa organismos</div>
-  <div class="tab" onclick="setTab('bases',this)">Bases PDF</div>
-  <div class="tab" onclick="setTab('historial-mercado',this)">Inteligencia histórica</div>
-  <div class="tab" onclick="setTab('compraagil',this)">Compra Ágil</div>
+  <div class="tab active" data-tab="top10" onclick="setTab('top10')">Top Licitaciones</div>
+  <div class="tab" data-tab="empresas" onclick="setTab('empresas')">Mis empresas</div>
+  <div class="tab" data-tab="riesgo" onclick="setTab('riesgo')">Radar de Riesgo</div>
+  <div class="tab" data-tab="participaciones" onclick="setTab('participaciones')">Participaciones</div>
+  <div class="tab" data-tab="alertas" onclick="setTab('alertas')">Alertas</div>
+  <div class="tab" data-tab="heatmap" onclick="setTab('heatmap')">Mapa organismos</div>
+  <div class="tab" data-tab="bases" onclick="setTab('bases')">Bases PDF</div>
+  <div class="tab" data-tab="historial-mercado" onclick="setTab('historial-mercado')">Inteligencia histórica</div>
+  <div class="tab" data-tab="compraagil" onclick="setTab('compraagil')">Compra Ágil</div>
 </div>
 
 <!-- TOP LICITACIONES -->
@@ -206,10 +204,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
       <span style="font-size:10px;color:#888;">Mostrar:</span>
       
       <select id="top-n-select" onchange="renderList()" style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid #e0e0d8;">
-        <option value="10">Top 10</option>
-        <option value="20">Top 20</option>
-        <option value="50">Top 50</option>
-        <option value="999">Todas</option>
+        <option value="top">Top 5 vigentes + Top 10 recientes</option>
+        <option value="todas">Todas</option>
       </select>
     </div>
   </div>
@@ -239,51 +235,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
   <div id="empresas-list"></div>
 </div>
 
-<!-- SIMULADOR -->
-<div class="tab-content" id="tab-simulador" style="display:none;">
-  <div class="panel">
-    <h3>Simulador de evaluación</h3>
-    <div class="fg"><select id="sim-select" style="width:100%;"><option value="">— Selecciona licitación —</option></select></div>
-    <div id="sim-content" style="display:none;">
-      <div id="sim-data-preview"></div>
-      <div class="g2" id="sim-sliders" style="margin-bottom:.8rem;"></div>
-      <div class="fg"><label>Notas adicionales</label><textarea id="sim-notas" rows="2" placeholder="Ventajas competitivas, experiencia previa con el organismo..."></textarea></div>
-      <button class="btn btn-primary" onclick="runSimulation()">Simular ↗</button>
-      <div id="sim-result" style="margin-top:.8rem;"></div>
-    </div>
-  </div>
-</div>
-
-<!-- HISTORIAL -->
-<div class="tab-content" id="tab-historial" style="display:none;">
-  <div class="panel">
-    <h3>Historial de organismo comprador</h3>
-    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:.8rem;">
-      <input type="text" id="org-input" placeholder="Ministerio, Municipalidad, Hospital..." style="flex:1;min-width:160px;padding:7px 9px;border-radius:8px;border:1px solid #e0e0d8;font-size:12px;"/>
-      <button class="btn btn-primary" onclick="buscarHistorial()">Analizar ↗</button>
-    </div>
-    <div id="historial-result"></div>
-  </div>
-</div>
-
 <!-- RADAR RIESGO -->
 <div class="tab-content" id="tab-riesgo" style="display:none;">
   <div class="panel">
     <h3>Radar de Riesgo</h3>
     <div class="inner-tabs">
-      <div class="inner-tab active" onclick="setRiskTab('org',this)">Por organismo</div>
-      <div class="inner-tab" onclick="setRiskTab('lic',this)">Por licitación</div>
+      <div class="inner-tab active" onclick="setRiskTab('lic',this)">Por licitación</div>
       <div class="inner-tab" onclick="setRiskTab('radar',this)">Mapa</div>
       <div class="inner-tab" onclick="setRiskTab('metodologia',this)">Metodología</div>
     </div>
-    <div id="risk-tab-org">
-      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:.8rem;">
-        <input type="text" id="risk-org-input" placeholder="Nombre del organismo..." style="flex:1;min-width:160px;padding:7px 9px;border-radius:8px;border:1px solid #e0e0d8;font-size:12px;"/>
-        <button class="btn btn-primary" onclick="analizarRiesgoOrg()">Analizar ↗</button>
-      </div>
-      <div id="risk-org-result"></div>
-    </div>
-    <div id="risk-tab-lic" style="display:none;">
+    <div id="risk-tab-lic">
       <div class="fg"><label>Nombre licitación</label><input id="rl-nombre" placeholder="Adquisición de..."/></div>
       <div class="g2"><div class="fg"><label>Organismo</label><input id="rl-org"/></div><div class="fg"><label>Monto CLP</label><input id="rl-monto" placeholder="15.000.000"/></div></div>
       <div class="g3">
@@ -345,7 +306,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 <div class="tab-content" id="tab-heatmap" style="display:none;">
   <div class="panel">
     <h3>Mapa de calor · organismos compradores</h3>
-    <p style="font-size:11px;color:#888;margin-bottom:.7rem;">Afinidad con empresa activa + señales de riesgo reales. Clic para analizar.</p>
+    <p style="font-size:11px;color:#888;margin-bottom:.7rem;">Afinidad con empresa activa + señales de riesgo reales. Solo agrupa bien las licitaciones con detalle cargado (organismo).</p>
     <div id="heatmap-container" class="loading">Genera el barrido primero.</div>
   </div>
 </div>
@@ -355,7 +316,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
   <div class="panel">
     <h3>Analizar bases PDF</h3>
     <p style="font-size:11px;color:#888;margin-bottom:.8rem;">Extrae texto y analiza con IA. ~$0.003 por análisis.</p>
-    <div class="pdf-drop" onclick="document.getElementById('pdf-input').click()">
+    <div class="pdf-drop" onclick="document.getElementById('pdf-input').click()" ondragover="event.preventDefault();this.style.borderColor='#378ADD'" ondragleave="this.style.borderColor=''" ondrop="event.preventDefault();this.style.borderColor='';handlePDF({files:event.dataTransfer.files})">
       <p style="font-size:13px;color:#888;">Clic o arrastra el PDF aquí</p>
       <p style="font-size:10px;color:#aaa;margin-top:4px;">PDF · máx. 10MB</p>
     </div>
@@ -481,7 +442,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
   <div class="modal">
     <h2 id="modal-empresa-title">Nueva empresa</h2>
     <input type="hidden" id="empresa-edit-id"/>
-    <div class="g2"><div class="fg"><label>Nombre empresa</label><input id="e-nombre" placeholder="OUTRO SpA"/></div><div class="fg"><label>RUT</label><input id="e-rut" placeholder="76.146.139-7"/></div></div>
+    <div class="g2"><div class="fg"><label>Nombre empresa</label><input id="e-nombre" placeholder="Nombre de la empresa"/></div><div class="fg"><label>RUT</label><input id="e-rut" placeholder="76.146.139-7"/></div></div>
     <div class="fg"><label>Descripción breve</label><textarea id="e-desc" rows="2" placeholder="Productora audiovisual, eventos, comunicaciones, SAG, salud..."></textarea></div>
     <div class="g2"><div class="fg"><label>Años de experiencia</label><input type="number" id="e-exp" value="5" min="0"/></div><div class="fg"><label>Monto máximo licitación CLP</label><input id="e-montomax" placeholder="50.000.000"/></div></div>
     <div class="fg"><label>Rubro principal</label>
@@ -650,13 +611,6 @@ function enriquecerConDetalle(norm, detalle) {
   };
 }
 
-async function fetchListadoPorFecha(fecha) {
-  const r = await fetch(`https://api.mercadopublico.cl/servicios/v1/Publico/licitaciones.json?fecha=${fecha}&ticket=${getMPTicket()}`);
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  const d = await r.json();
-  return (d.Listado || []).map(normalizarListado);
-}
-
 let mpCuota429 = false;
 function getDetCache(){ try{ return JSON.parse(localStorage.getItem('licit_det_cache')||'{}'); }catch(e){ return {}; } }
 function setDetCache(c){
@@ -687,12 +641,9 @@ function fechaParaAPI(diasAtras) {
 }
 
 function estaActiva(lic) {
-  // Códigos de estado que indican licitación CERRADA/TERMINADA
-  const estadosInactivos = ['6','06','7','07','8','08','9','09','18',
-    'Cerrada','Desierta','Adjudicada','Revocada','Suspendida'];
+  // El listado trae CodigoEstado: solo 5 = Publicada
   const estado = String(lic._estado || '').trim();
-  if (estado && estadosInactivos.includes(estado)) return false;
-  if (estado && !['5','05','Publicada'].includes(estado)) return false; // el listado trae CodigoEstado: solo 5 = Publicada
+  if (estado && !['5','05','Publicada'].includes(estado)) return false;
 
   // Verificar fecha de cierre con holgura de 12h para zonas horarias
   if (lic._fechaCierre) {
@@ -765,7 +716,7 @@ function scorearParaEmpresa(lic, emp) {
   const texto = nombre + ' ' + desc;
 
   // Keywords de la empresa
-  const kws = (emp.keywords||'').split(',').map(k=>k.trim().toLowerCase()).filter(Boolean);
+  const kws = kwList(emp);
   const kwMatch = kws.filter(k=>k&&texto.includes(k)).length;
   s += Math.min(30, kwMatch * 7);
 
@@ -803,7 +754,8 @@ function detectarSubrubro(lic, emp) {
 }
 
 function checkAlerts(lic) {
-  return alertas.filter(a=>{
+  const empId = getActiveEmpresa().id;
+  return alertas.filter(a=>(!a.empresa || a.empresa===empId)).filter(a=>{
     const kw = !a.kw || (lic._nombre||'').toLowerCase().includes(a.kw.toLowerCase());
     const sc = (lic._score||0) >= (a.score||0);
     const m = lic._montoEstimado || 0;
@@ -815,7 +767,7 @@ function checkAlerts(lic) {
 // ESTADO GLOBAL
 // ═══════════════════════════════════════════════════════
 const DEFAULT_EMPRESAS = [
-  {id:'outro',nombre:'OUTRO SpA',rut:'76.146.139-7',exp:7,montoMax:80000000,color:'#185FA5',rubro:'comunicaciones',
+  {id:'outro',nombre:'OUTRO S.A.C.',rut:'76.146.139-7',exp:7,montoMax:80000000,color:'#185FA5',rubro:'comunicaciones',
    subrubros:['audiovisual','eventos','capacitacion','agri','salud'],
    keywords:'video institucional,producción audiovisual,eventos culturales,difusión,spot,fotografía,capacitación,SAG,MINSAL,producción contenidos,comunicación,radio,televisión,registro,concierto,recital',
    desc:'Productora audiovisual y de eventos. También trabaja con SAG (agrícola) y sector salud.'},
@@ -836,23 +788,18 @@ let radarData = JSON.parse(localStorage.getItem('licit_radar')||'[]');
 let selectedColor = '#185FA5';
 
 function getActiveEmpresa(){ return empresas.find(e=>e.id===activeEmpresaId)||empresas[0]; }
+function kwList(emp){ return (emp?.keywords||'').split(/[\n,]/).map(k=>k.trim().toLowerCase()).filter(Boolean); }
 
 // ═══════════════════════════════════════════════════════
 // CAPA 1: FETCH — barrido 3 días con progreso
 // ═══════════════════════════════════════════════════════
 async function fetchLicitaciones() {
-  document.getElementById('barrido-progress').style.display='block';
-  document.getElementById('licit-list').innerHTML='';
-  document.getElementById('detail-container').innerHTML='';
-  document.getElementById('error-container').innerHTML='';
-  document.getElementById('api-status').textContent='Barriendo...';
-  document.getElementById('api-status').className='badge badge-loading';
+  const $ = id => document.getElementById(id);
+  $('barrido-progress').style.display='block';
+  $('licit-list').innerHTML=''; $('detail-container').innerHTML=''; $('error-container').innerHTML='';
+  $('api-status').textContent='Barriendo...'; $('api-status').className='badge badge-loading';
 
-  const dias = [0, 1, 2]; // hoy + 2 días atrás
-  let todasLics = [];
-  let diasConDatos = 0;
-
-  // Helper: fetch con retry ante 429 y pausa entre llamadas
+  // Fetch con reintento ante 429
   async function fetchConRetry(url, intentos=3) {
     for (let intento=0; intento<intentos; intento++) {
       if (intento > 0) await new Promise(r => setTimeout(r, intento * 2500));
@@ -863,107 +810,86 @@ async function fetchLicitaciones() {
     throw new Error('429 — demasiadas solicitudes. Espera 2 minutos y reintenta.');
   }
 
-  let diasOk = 0, errores = [];
-  for (let i = 0; i < dias.length; i++) {
-    document.getElementById('barrido-bar').style.width = Math.round((i/dias.length)*80)+'%';
-    const fecha = fechaParaAPI(dias[i]);
-    document.getElementById('barrido-status').textContent = `Barriendo día ${i+1}/${dias.length}...`;
-
-    // Pausa 1.5s entre días para respetar rate limit
+  // Día en que cada licitación aparece en el listado por fecha (0 = hoy).
+  // Se asume que ese día corresponde a su publicación o última actualización.
+  const DIAS = BARRIDO_DIAS;
+  const porCodigo = {}; let recibidas = 0; const errores = [];
+  for (let i = 0; i < DIAS; i++) {
+    $('barrido-bar').style.width = Math.round((i/(DIAS+1))*85)+'%';
+    $('barrido-status').textContent = `Barriendo día ${i+1}/${DIAS}...`;
     if (i > 0) await new Promise(r => setTimeout(r, 1500));
-
     try {
-      const url = `https://api.mercadopublico.cl/servicios/v1/Publico/licitaciones.json?fecha=${fecha}&ticket=${getMPTicket()}`;
-      const resp = await fetchConRetry(url);
-      const raw = await resp.json();
-      const listado = raw.Listado || [];
-
-      // Log silencioso para diagnóstico si se necesita
-      if (listado.length > 0 && i === 0) {
-        const s = listado[0];
-        console.log('[LicitaInteligente] Claves del listado:', Object.keys(s));
-      }
-
-      todasLics = todasLics.concat(listado.map(normalizarListado));
-      if (listado.length > 0) diasOk++;
-    } catch(e) {
-      errores.push(e.message);
-      console.warn('Error día '+i+':', e);
+      const resp = await fetchConRetry(`https://api.mercadopublico.cl/servicios/v1/Publico/licitaciones.json?fecha=${fechaParaAPI(i)}&ticket=${getMPTicket()}`);
+      const listado = (await resp.json()).Listado || [];
+      recibidas += listado.length;
+      listado.map(normalizarListado).forEach(l => {
+        if (!l._codigo) return;
+        if (!porCodigo[l._codigo]) porCodigo[l._codigo] = {...l, _diasPub: i};
+        else porCodigo[l._codigo]._diasPub = Math.min(porCodigo[l._codigo]._diasPub, i);
+      });
+    } catch(e) { errores.push(e.message); console.warn('Error día '+i+':', e); }
+  }
+  // Vigentes publicadas antes de la ventana (cierre amplio): estado=activas
+  let activasOk = false, nuevasActivas = 0;
+  try {
+    $('barrido-status').textContent = 'Buscando vigentes más antiguas (cierre amplio)...';
+    await new Promise(r => setTimeout(r, 1500));
+    const resp = await fetchConRetry(`https://api.mercadopublico.cl/servicios/v1/Publico/licitaciones.json?estado=activas&ticket=${getMPTicket()}`);
+    if (resp.ok) {
+      const listado = (await resp.json()).Listado || [];
+      activasOk = listado.length > 0;
+      listado.map(normalizarListado).forEach(l => {
+        if (l._codigo && !porCodigo[l._codigo]) { porCodigo[l._codigo] = {...l, _diasPub: null}; nuevasActivas++; }
+      });
     }
-  }
+  } catch(e) { console.warn('estado=activas no disponible:', e); }
 
-  if (errores.length > 0) {
-    document.getElementById('error-container').innerHTML =
-      `<div style="background:#FAEEDA;border:1px solid #FAC775;border-radius:8px;padding:.6rem .8rem;font-size:11px;color:#633806;margin-bottom:.8rem;">
-        ⚠ ${errores[0]}
-      </div>`;
-  }
+  $('barrido-bar').style.width='92%';
+  $('barrido-status').textContent='Procesando y filtrando...';
+  const unicas = Object.values(porCodigo);
 
-  document.getElementById('barrido-bar').style.width='90%';
-  document.getElementById('barrido-status').textContent='Procesando y filtrando...';
-
-  if (todasLics.length === 0) {
+  if (unicas.length === 0) {
     useDemoData();
-    document.getElementById('api-status').textContent='Modo demo';
-    document.getElementById('api-status').className='badge badge-demo';
+    $('api-status').textContent='Modo demo'; $('api-status').className='badge badge-demo';
+    if (errores.length) $('error-container').innerHTML += `<div class="ai-box ai-amber">⚠ ${esc(errores[0])}</div>`;
   } else {
-    // Deduplicar por código
-    const seen = new Set();
-    const dedup = todasLics.filter(l=>{
-      if (!l._codigo || seen.has(l._codigo)) return false;
-      seen.add(l._codigo);
-      return true;
-    });
-
-    // Filtrar activas
-    const activas = dedup.filter(l => estaActiva(l));
-    const descartadas = dedup.length - activas.length;
-
-    // Diagnóstico siempre visible
-    document.getElementById('error-container').innerHTML =
+    const activas = unicas.filter(estaActiva);
+    $('error-container').innerHTML =
       `<div style="background:#E6F1FB;border:1px solid #B5D4F4;border-radius:8px;padding:.6rem .8rem;font-size:11px;color:#185FA5;margin-bottom:.8rem;">
-        🟢 API en vivo · ${todasLics.length} recibidas (3 días) · ${dedup.length} únicas · <b>${activas.length} activas</b> · ${descartadas} vencidas descartadas
-      </div>`;
-
-    // Si el filtro descartó todo (API no devuelve CodigoEstado en listado), mostrar todas
-    const aRenderizar = activas.length > 0 ? activas : dedup;
-    if (activas.length === 0 && dedup.length > 0) {
-      document.getElementById('error-container').innerHTML +=
-        `<div style="background:#FAEEDA;border:1px solid #FAC775;border-radius:8px;padding:.6rem .8rem;font-size:11px;color:#633806;margin-bottom:.8rem;">
-          ⚠ No se detectó estado en la respuesta API — mostrando las ${dedup.length} licitaciones sin filtrar. Revisa la fecha de cierre de cada una.
-        </div>`;
-    }
-
-    processLics(aRenderizar, todasLics.length);
-    document.getElementById('api-status').textContent='API en vivo';
-    document.getElementById('api-status').className='badge badge-live';
+        🟢 API en vivo · ${recibidas} recibidas en ${DIAS} días · ${unicas.length} únicas${activasOk?` (+${nuevasActivas} vigentes más antiguas)`:' · consulta de vigentes antiguas no disponible'} · <b>${activas.length} vigentes</b> · ${unicas.length-activas.length} cerradas o vencidas descartadas
+      </div>` + (errores.length ? `<div class="ai-box ai-amber">⚠ ${errores.length} día(s) con error: ${esc(errores[0])}</div>` : '');
+    processLics(activas);
+    $('api-status').textContent='API en vivo'; $('api-status').className='badge badge-live';
     mostrarBotonDetalle();
   }
-
-  document.getElementById('barrido-bar').style.width='100%';
-  setTimeout(()=>{ document.getElementById('barrido-progress').style.display='none'; }, 800);
+  $('barrido-bar').style.width='100%';
+  setTimeout(()=>{ $('barrido-progress').style.display='none'; }, 800);
 }
-
 
 // ═══════════════════════════════════════════════════════
 // ENRIQUECIMIENTO: el listado por fecha solo trae código, cierre y estado.
 // Organismo, monto y región llegan con el detalle (1 llamada por licitación),
 // por eso se pide solo para las mejor puntuadas y se guarda en caché 12 h.
 // ═══════════════════════════════════════════════════════
+const BARRIDO_DIAS = 10;   // ventana de días consultados por fecha
+const DIAS_RECIENTES = 3;  // 'recién publicadas' = aparecen en los últimos 3 días (hoy + 2)
+const TOP_AMPLIO = 5, TOP_RECIENTE = 10;
+let visibles = [];
 let enriqueciendo = false;
 function mostrarBotonDetalle(){
   const sinDet = allLics.filter(l => !l._fuenteDetalle).length;
   const st = document.getElementById('enrich-status');
   if (!st) return;
   st.innerHTML = sinDet
-    ? `<div style="font-size:10px;color:#888;margin-bottom:.5rem;">El listado de MP no trae organismo ni monto. <button class="btn btn-sm" onclick="enriquecerTop(30)">Cargar detalle de las 30 primeras</button> <span style="color:#aaa;">(30 llamadas de tu cuota MP; quedan en caché 12 h)</span></div>`
+    ? `<div style="font-size:10px;color:#888;margin-bottom:.5rem;">El listado de MP no trae organismo ni monto. <button class="btn btn-sm" onclick="enriquecerTop(${TOP_AMPLIO+TOP_RECIENTE})">Cargar detalle de las ${TOP_AMPLIO+TOP_RECIENTE} visibles</button> <span style="color:#aaa;">(1 llamada por licitación a tu cuota MP; queda en caché 12 h)</span></div>`
     : '';
 }
 async function enriquecerTop(n) {
   if (enriqueciendo) return;
   enriqueciendo = true; mpCuota429 = false;
   const st = document.getElementById('enrich-status');
-  const pend = allLics.filter(l => !l._fuenteDetalle && l._codigo).slice(0, n);
+  const orden = visibles.length ? visibles.concat(allLics.filter(l=>!visibles.includes(l))) : allLics;
+  const pend = orden.filter(l => !l._fuenteDetalle && l._codigo).slice(0, n);
   let hechos = 0;
   const porCodigo = {};
   for (let i = 0; i < pend.length; i++) {
@@ -978,13 +904,13 @@ async function enriquecerTop(n) {
   if (hechos > 0) {
     const selCod = selectedLicit?._codigo;
     const merged = allLics.map(l => porCodigo[l._codigo] ? enriquecerConDetalle(l, porCodigo[l._codigo]) : l);
-    processLics(merged, merged.length);
+    processLics(merged);
     if (selCod) selectedLicit = allLics.find(l => l._codigo === selCod) || null;
   }
   const sinDet = allLics.filter(l => !l._fuenteDetalle).length;
   st.innerHTML = mpCuota429
-    ? `<div class="ai-box ai-amber">⚠ Límite de la API (429) tras ${hechos} detalles. Espera unos minutos y pulsa «Cargar más detalles».</div><button class="btn btn-sm" onclick="enriquecerTop(30)">Cargar más detalles</button>`
-    : `<div style="font-size:10px;color:#888;margin-bottom:.5rem;">🟢 ${allLics.length - sinDet} con detalle completo · ${sinDet} pendientes ${sinDet ? '<button class="btn btn-sm" onclick="enriquecerTop(30)">Cargar 30 más</button>' : ''}</div>`;
+    ? `<div class="ai-box ai-amber">⚠ Límite de la API (429) tras ${hechos} detalles. Espera unos minutos y pulsa «Cargar más detalles».</div><button class="btn btn-sm" onclick="enriquecerTop(15)">Cargar más detalles</button>`
+    : `<div style="font-size:10px;color:#888;margin-bottom:.5rem;">🟢 ${allLics.length - sinDet} con detalle completo · ${sinDet} pendientes ${sinDet ? '<button class="btn btn-sm" onclick="enriquecerTop(15)">Cargar 15 más</button>' : ''}</div>`;
   enriqueciendo = false;
 }
 
@@ -1003,12 +929,12 @@ function useDemoData() {
     {CodigoExterno:'8024-57-LE25',Nombre:'Suministro herramientas y repuestos industriales',NombreOrganismo:'Metro S.A.',FechaCierre:f(30),MontoEstimado:22000000,Tipo:'LE',DiasCierreLicitacion:30,CantidadReclamos:0,TipoConvocatoria:1,TomaRazon:0,ExtensionPlazo:0,CodigoEstado:'05',Adjudicacion:{NumeroOferentes:0}},
     {CodigoExterno:'6913-80-LE25',Nombre:'Taller formación fitosanitaria manejo plagas SAG',NombreOrganismo:'SAG Región del Maule',FechaCierre:f(16),MontoEstimado:6500000,Tipo:'LE',DiasCierreLicitacion:16,CantidadReclamos:0,TipoConvocatoria:1,TomaRazon:0,ExtensionPlazo:0,CodigoEstado:'05',Adjudicacion:{NumeroOferentes:0}},
   ];
-  const normalizadas = raw.map(normalizarListado);
-  processLics(normalizadas, raw.length);
+  const normalizadas = raw.map((r,i)=>({...normalizarListado(r), _diasPub: i%3===0 ? 5 : i%4}));
+  processLics(normalizadas);
   document.getElementById('error-container').innerHTML='<div style="background:#FAEEDA;border:1px solid #FAC775;border-radius:8px;padding:.6rem .8rem;font-size:11px;color:#633806;margin-bottom:.8rem;">Datos de demostración con fechas relativas a hoy. Configura tu ticket para datos reales.</div>';
 }
 
-function processLics(licsNormalizadas, totalRaw) {
+function processLics(licsNormalizadas) {
   const emp = getActiveEmpresa();
 
   // 🟡 ANÁLISIS sobre datos reales
@@ -1035,11 +961,10 @@ function processLics(licsNormalizadas, totalRaw) {
   document.getElementById('m-oport').textContent = relevantes;
   document.getElementById('m-max').textContent = (allLics[0]?._score||0)+'%';
   document.getElementById('m-reclamos').textContent = conReclamos;
-  document.getElementById('m-alerts').textContent = alertas.length;
+  document.getElementById('m-alerts').textContent = alertas.filter(a=>!a.empresa||a.empresa===emp.id).length;
 
   renderFilters();
   renderList();
-  populateSimSelect();
   renderHeatmap();
   checkAlertas();
 }
@@ -1062,50 +987,61 @@ function renderFilters() {
   c.innerHTML = chips;
 }
 
+function cardHTML(l, i) {
+  const s=l._score, cls=s>=70?'sh':s>=50?'sm':'sl';
+  const ms=l._montoEstimado>0?'$'+(l._montoEstimado/1e6).toFixed(1)+'M '+esc(l._moneda):'Sin monto';
+  const ci=l._fechaCierre?new Date(l._fechaCierre).toLocaleDateString('es-CL',{day:'2-digit',month:'short'}):'—';
+  const diasTag=l._diasCierre>0&&l._diasCierre<=5?`<span class="tag tag-risk">${l._diasCierre}d cierre</span>`:'';
+  const recTag=l._reclamos>0?`<span class="tag tag-risk">${l._reclamos} rec.</span>`:'';
+  const convTag=l._convocatoria===0?`<span class="tag tag-risk">Cerrada</span>`:'';
+  const tomaTag=l._tomaRazon===1?`<span class="tag tag-ok">Contraloría</span>`:'';
+  const tipoTag=l._tipo?`<span class="tag tag-gray">${esc(l._tipo)}</span>`:'';
+  const pubTag=l._diasPub===0?'<span class="tag tag-ok">Hoy</span>':l._diasPub!=null?`<span class="tag tag-gray">hace ${l._diasPub}d</span>`:'<span class="tag tag-gray">+'+BARRIDO_DIAS+'d</span>';
+  const alertTag=l._alerts&&l._alerts.length?`<span class="tag tag-alert">🔔 Alerta</span>`:'';
+  const ri=l._riesgoScore||0;
+  const riTag=ri>20?`<span class="tag" style="background:${riskBg(ri)};color:${riskColor(ri)};">⚠ ${ri}</span>`:'';
+  let srTag='';
+  if(l._subrubro&&SUBRUBROS_DB[l._subrubro]){
+    const sr=SUBRUBROS_DB[l._subrubro];
+    const cls2=sr.color==='agri'?'tag-agri':sr.color==='salud'?'tag-salud':sr.color==='industrial'?'tag-industrial':'';
+    srTag=`<span class="tag ${cls2}">${sr.label}</span>`;
+  }
+  const flagged=ri>30||l._reclamos>0||l._convocatoria===0;
+  return `<div class="licit-card ${selectedLicit?._codigo===l._codigo?'selected':''} ${flagged?'risk-flagged':''}" onclick="selectLic(${allLics.indexOf(l)})">
+    <div class="licit-header"><div class="licit-title">${i+1}. ${esc(l._nombre||'Sin nombre')}</div><span class="score-badge ${cls}">${s}%</span></div>
+    <div class="licit-meta">
+      <span>${esc(l._organismo)||(l._fuenteDetalle?'Organismo no disponible':'Organismo: pendiente de detalle')}</span>
+      <span>Cierre: ${ci}</span>
+      <span>${ms}</span>
+      ${l._codigo?`<span style="color:#aaa;">ID: ${esc(l._codigo)}</span>`:''}
+    </div>
+    <div style="display:flex;gap:3px;flex-wrap:wrap;">${pubTag}${tipoTag}${srTag}${alertTag}${diasTag}${recTag}${convTag}${tomaTag}${riTag}</div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${s}%;background:${s>=70?'#639922':s>=50?'#BA7517':'#E24B4A'}"></div></div>
+  </div>`;
+}
+
 function renderList() {
   const c = document.getElementById('licit-list');
-  const topN = parseInt(document.getElementById('top-n-select')?.value||10);
+  const modo = document.getElementById('top-n-select')?.value || 'top';
   let filt = allLics;
   if (currentFilter==='alerts') filt=allLics.filter(l=>l._alerts&&l._alerts.length>0);
   else if (currentFilter==='riesgo') filt=allLics.filter(l=>l._riesgoScore>20);
-  else if (currentFilter==='ca') filt=allLics.filter(l=>l._ca);
-  else if (currentFilter==='lp') filt=allLics.filter(l=>!l._ca);
   else if (currentFilter!=='todos') filt=allLics.filter(l=>l._subrubro===currentFilter);
-  filt = filt.slice(0, topN);
 
-  if (!filt.length) { c.innerHTML='<div class="loading">Sin licitaciones para este filtro.</div>'; return; }
+  if (!filt.length) { visibles=[]; c.innerHTML='<div class="loading">Sin licitaciones para este filtro.</div>'; return; }
 
-  c.innerHTML = filt.map((l,i)=>{
-    const s=l._score, cls=s>=70?'sh':s>=50?'sm':'sl';
-    const ms=l._montoEstimado>0?'$'+(l._montoEstimado/1e6).toFixed(1)+'M '+l._moneda:'Sin monto';
-    const ci=l._fechaCierre?new Date(l._fechaCierre).toLocaleDateString('es-CL',{day:'2-digit',month:'short'}):'—';
-    const diasTag=l._diasCierre>0&&l._diasCierre<=5?`<span class="tag tag-risk">${l._diasCierre}d cierre</span>`:'';
-    const recTag=l._reclamos>0?`<span class="tag tag-risk">${l._reclamos} rec.</span>`:'';
-    const convTag=l._convocatoria===0?`<span class="tag tag-risk">Cerrada</span>`:'';
-    const tomaTag=l._tomaRazon===1?`<span class="tag tag-ok">Contraloría</span>`:'';
-    const tipoTag=l._tipo?`<span class="tag tag-gray">${l._tipo}</span>`:'';
-    const alertTag=l._alerts&&l._alerts.length?`<span class="tag tag-alert">🔔 Alerta</span>`:'';
-    const ri=l._riesgoScore||0;
-    const riTag=ri>20?`<span class="tag" style="background:${riskBg(ri)};color:${riskColor(ri)};">⚠ ${ri}</span>`:'';
-    let srTag='';
-    if(l._subrubro&&SUBRUBROS_DB[l._subrubro]){
-      const sr=SUBRUBROS_DB[l._subrubro];
-      const cls2=sr.color==='agri'?'tag-agri':sr.color==='salud'?'tag-salud':sr.color==='industrial'?'tag-industrial':'';
-      srTag=`<span class="tag ${cls2}">${sr.label}</span>`;
-    }
-    const flagged=ri>30||l._reclamos>0||l._convocatoria===0;
-    return `<div class="licit-card ${selectedLicit?._codigo===l._codigo?'selected':''} ${flagged?'risk-flagged':''}" onclick="selectLic(${allLics.indexOf(l)})">
-      <div class="licit-header"><div class="licit-title">${i+1}. ${l._nombre||'Sin nombre'}</div><span class="score-badge ${cls}">${s}%</span></div>
-      <div class="licit-meta">
-        <span>${l._organismo||(l._fuenteDetalle?'Organismo no disponible':'Organismo: pendiente de detalle')}</span>
-        <span>Cierre: ${ci}</span>
-        <span>${ms}</span>
-        ${l._codigo?`<span style="color:#aaa;">ID: ${l._codigo}</span>`:''}
-      </div>
-      <div style="display:flex;gap:3px;flex-wrap:wrap;">${tipoTag}${srTag}${alertTag}${diasTag}${recTag}${convTag}${tomaTag}${riTag}</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${s}%;background:${s>=70?'#639922':s>=50?'#BA7517':'#E24B4A'}"></div></div>
-    </div>`;
-  }).join('');
+  // allLics ya viene ordenado por puntaje
+  const recientes = filt.filter(l => l._diasPub!=null && l._diasPub < DIAS_RECIENTES);
+  const amplias  = filt.filter(l => !(l._diasPub!=null && l._diasPub < DIAS_RECIENTES));
+  const verA = modo==='todas' ? amplias : amplias.slice(0, TOP_AMPLIO);
+  const verR = modo==='todas' ? recientes : recientes.slice(0, TOP_RECIENTE);
+  visibles = verA.concat(verR);
+  const titulo = (t, sub, n, total) => `<div class="sec-title" style="margin:.4rem 0 .5rem;">${t} <span style="font-weight:400;text-transform:none;letter-spacing:0;">· ${sub} · ${n} de ${total}</span></div>`;
+  c.innerHTML =
+    titulo(`${modo==='todas'?'':'Top '+TOP_AMPLIO+' '}vigentes`, `publicadas hace ${DIAS_RECIENTES}+ días, aún abiertas`, verA.length, amplias.length)
+    + (verA.length ? verA.map(cardHTML).join('') : '<div style="font-size:11px;color:#aaa;margin-bottom:.8rem;">Ninguna en este grupo.</div>')
+    + titulo(`${modo==='todas'?'':'Top '+TOP_RECIENTE+' '}recién publicadas`, `últimos ${DIAS_RECIENTES} días`, verR.length, recientes.length)
+    + (verR.length ? verR.map(cardHTML).join('') : '<div style="font-size:11px;color:#aaa;">Ninguna en este grupo.</div>');
 }
 
 function selectLic(idx){ selectedLicit=allLics[idx]; renderList(); showDetail(selectedLicit); }
@@ -1126,18 +1062,16 @@ function diVal(label,val,cls='',fuente='real'){
 }
 
 async function showDetail(l) {
-  if (l._ca) return caSelectDesdeTop(l);
   const c=document.getElementById('detail-container');
   const code=l._codigo||'';
-  const orgName=(l._organismo||'').replace(/'/g,'');
 
   // Skeleton inmediato
   c.innerHTML=`<div class="panel" style="margin-top:.8rem;">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.7rem;flex-wrap:wrap;gap:5px;">
-      <div style="font-size:13px;font-weight:700;flex:1;">${l._nombre||'Sin nombre'}</div>
-      ${code?`<a href="https://www.mercadopublico.cl/Procurement/Modules/RFB/DetailsAcquisition.aspx?qs=${code}" target="_blank" style="font-size:10px;color:#185FA5;white-space:nowrap;">Ver en portal →</a>`:''}
+      <div style="font-size:13px;font-weight:700;flex:1;">${esc(l._nombre||'Sin nombre')}</div>
+      ${code?`<a href="https://www.mercadopublico.cl/Procurement/Modules/RFB/DetailsAcquisition.aspx?qs=${encodeURIComponent(code)}" target="_blank" style="font-size:10px;color:#185FA5;white-space:nowrap;">Ver en portal →</a>`:''}
     </div>
-    <div style="font-size:10px;color:#888;margin-bottom:.5rem;">ID: <b>${code||'—'}</b> · Organismo: <b>${l._organismo||'—'}</b></div>
+    <div style="font-size:10px;color:#888;margin-bottom:.5rem;">ID: <b>${esc(code||'—')}</b> · Organismo: <b id="det-org">${esc(l._organismo||'—')}</b></div>
     <div class="leyenda">
       <span class="fuente-real">🟢 Dato real API</span>
       <span class="fuente-analisis">🟡 Análisis app</span>
@@ -1147,10 +1081,8 @@ async function showDetail(l) {
     <div id="detail-data" class="loading"><span class="spinner"></span>Cargando detalle completo...</div>
     <div id="detail-ia" style="display:none;"></div>
     <div style="display:flex;gap:5px;margin-top:.7rem;flex-wrap:wrap;">
-      <button class="btn btn-primary btn-sm" onclick="goSimular('${code}')">Simular ↗</button>
-      <button class="btn btn-sm" onclick="goHistorial('${orgName}')">Historial ↗</button>
-      <button class="btn btn-danger btn-sm" onclick="goRiesgo('${orgName}')">Riesgo ↗</button>
-      <button class="btn btn-sm" onclick="prefillPart('${code}','${(l._nombre||'').replace(/'/g,'')}','${orgName}','${l._montoEstimado||0}')">Registrar ↗</button>
+      <button class="btn btn-primary btn-sm" id="btn-ia-detalle" disabled>🔵 Predicción IA</button>
+      <button class="btn btn-sm" onclick="prefillPart('${esc(code)}')">Registrar participación ↗</button>
     </div>
   </div>`;
 
@@ -1160,8 +1092,16 @@ async function showDetail(l) {
     const detalle = await fetchDetallePorCodigo(code);
     enriched = enriquecerConDetalle(l, detalle);
     // Actualizar el licit en allLics con datos enriquecidos
-    const idx = allLics.findIndex(x=>x._codigo===code);
-    if (idx>=0) allLics[idx] = {...allLics[idx], ...enriched};
+    if (detalle) {
+      const idx = allLics.findIndex(x=>x._codigo===code);
+      if (idx>=0) {
+        allLics[idx] = {...allLics[idx], ...enriched};
+        processLics(allLics);           // recalcula puntaje y tarjeta con el detalle
+        selectedLicit = allLics.find(x=>x._codigo===code) || selectedLicit;
+        enriched = selectedLicit;
+      }
+      const o=document.getElementById('det-org'); if(o) o.textContent=enriched._organismo||'—';
+    }
   }
 
   // 🟡 CAPA 2: Análisis con datos enriquecidos
@@ -1189,9 +1129,9 @@ async function showDetail(l) {
         const adj=it.Adjudicacion;
         return `<tr style="border-bottom:1px solid #f0f0ec;">
           <td style="padding:4px 6px;font-size:10px;">${it.Correlativo||'—'}</td>
-          <td style="padding:4px 6px;font-size:10px;">${it.NombreProducto||it.Descripcion||'—'}</td>
+          <td style="padding:4px 6px;font-size:10px;">${esc(it.NombreProducto||it.Descripcion||'—')}</td>
           <td style="padding:4px 6px;font-size:10px;">${it.Cantidad||'—'} ${it.UnidadMedida||''}</td>
-          <td style="padding:4px 6px;font-size:10px;color:#3B6D11;">${adj?.NombreProveedor||'Pendiente'}${adj?.RutProveedor?' <span style="color:#aaa;">('+adj.RutProveedor+')</span>':''}</td>
+          <td style="padding:4px 6px;font-size:10px;color:#3B6D11;">${esc(adj?.NombreProveedor||'Pendiente')}${adj?.RutProveedor?' <span style="color:#aaa;">('+adj.RutProveedor+')</span>':''}</td>
           <td style="padding:4px 6px;font-size:10px;font-weight:600;">${adj?.MontoUnitario?'$'+Number(adj.MontoUnitario).toLocaleString('es-CL'):'—'}</td>
         </tr>`;
       }).join('')}</tbody>
@@ -1205,14 +1145,16 @@ async function showDetail(l) {
       <b>🟡 Análisis riesgo (${ri}/100 · ${riskLabel(ri)}):</b> ${riesgo.signals.join(' · ')}
     </div>`:''}
     <div class="data-grid">
-      ${diVal('Organismo',enriched._organismo,'','real')}
-      ${diVal('ID licitación',enriched._codigo,'','real')}
-      ${diVal('Monto estimado',enriched._montoEstimado>0?'$'+enriched._montoEstimado.toLocaleString('es-CL')+' '+enriched._moneda:'No publicado','','real')}
-      ${diVal('Tipo',enriched._tipo,'','real')}
-      ${diVal('Días para cierre',enriched._diasCierre>0?enriched._diasCierre+' días':'—',enriched._diasCierre>0&&enriched._diasCierre<=5?'red':enriched._diasCierre<=10?'amber':'green','real')}
-      ${diVal('Reclamos',enriched._reclamos>0?enriched._reclamos+' reclamo(s)':'Sin reclamos',enriched._reclamos>0?'red':'green','real')}
-      ${diVal('Convocatoria',enriched._convocatoria===0?'Cerrada':'Abierta',enriched._convocatoria===0?'red':'green','real')}
-      ${diVal('Toma de Razón',enriched._tomaRazon===1?'Sí (Contraloría)':'No',enriched._tomaRazon===1?'green':'amber','real')}
+      ${diVal('Organismo',esc(enriched._organismo),'',enriched._organismo?'real':'nd')}
+      ${diVal('ID licitación',esc(enriched._codigo),'','real')}
+      ${diVal('Monto estimado',enriched._montoEstimado>0?'$'+enriched._montoEstimado.toLocaleString('es-CL')+' '+esc(enriched._moneda):(enriched._fuenteDetalle?'No publicado':''),'',enriched._fuenteDetalle||enriched._montoEstimado>0?'real':'nd')}
+      ${diVal('Tipo',esc(enriched._tipo),'',enriched._tipo?'real':'nd')}
+      ${(()=>{ if(!enriched._fuenteDetalle) return diVal('Días para cierre','','','nd')+diVal('Reclamos','','','nd')+diVal('Convocatoria','','','nd')+diVal('Toma de Razón','','','nd');
+        const dc=enriched._diasCierre;
+        return diVal('Días para cierre',dc>0?dc+' días':'—',dc>0&&dc<=5?'red':dc>5&&dc<=10?'amber':dc>10?'green':'','real')
+        + diVal('Reclamos',enriched._reclamos>0?enriched._reclamos+' reclamo(s)':'Sin reclamos',enriched._reclamos>0?'red':'green','real')
+        + diVal('Convocatoria',enriched._convocatoria===0?'Cerrada':enriched._convocatoria===1?'Abierta':'—',enriched._convocatoria===0?'red':'green','real')
+        + diVal('Toma de Razón',enriched._tomaRazon===1?'Sí (Contraloría)':enriched._tomaRazon===0?'No':'—',enriched._tomaRazon===1?'green':'','real'); })()}
     </div>
     ${enriched._fuenteDetalle?`<div class="data-grid">
       ${diVal('Modalidad pago',MODALIDAD_MAP[String(enriched._modalidad)]||'—','','real')}
@@ -1225,20 +1167,24 @@ async function showDetail(l) {
       ${diVal('Región',enriched._region||'—','','real')}
     </div>
     ${enriched._respContrato?`<div style="background:#f5f5f3;border-radius:8px;padding:.5rem .75rem;font-size:10px;margin-bottom:.5rem;">
-      <b>🟢 Responsable contrato:</b> ${enriched._respContrato}
+      <b>🟢 Responsable contrato:</b> ${esc(enriched._respContrato)}
       ${enriched._emailContrato?` · <a href="mailto:${enriched._emailContrato}" style="color:#185FA5;">${enriched._emailContrato}</a>`:''}
       ${enriched._fonoContrato?` · ${enriched._fonoContrato}`:''}
     </div>`:''}
-    ${enriched._descripcion?`<div style="font-size:10px;color:#666;margin-bottom:.5rem;line-height:1.5;"><b>🟢 Descripción:</b> ${enriched._descripcion.substring(0,300)}${enriched._descripcion.length>300?'...':''}</div>`:''}
+    ${enriched._descripcion?`<div style="font-size:10px;color:#666;margin-bottom:.5rem;line-height:1.5;"><b>🟢 Descripción:</b> ${esc(enriched._descripcion.substring(0,300))}${enriched._descripcion.length>300?'...':''}</div>`:''}
     `:`<div style="font-size:10px;color:#aaa;margin-bottom:.4rem;">Detalle extendido no disponible para esta licitación.</div>`}
     ${itemsHTML}
     ${enriched._actaUrl?`<div style="margin-top:.5rem;font-size:10px;"><a href="${enriched._actaUrl}" target="_blank" style="color:#185FA5;">🟢 Ver acta de adjudicación →</a></div>`:''}
   </div>`;
 
-  // 🔵 CAPA 3: Predicción IA
-  document.getElementById('detail-ia').style.display='block';
-  document.getElementById('detail-ia').innerHTML='<div class="loading"><span class="spinner"></span>🔵 Generando predicción IA...</div>';
-  analizarConIA(enriched, riesgo);
+  // 🔵 CAPA 3: Predicción IA — solo bajo pedido (gasta tokens)
+  const b=document.getElementById('btn-ia-detalle');
+  if(b){ b.disabled=false; b.onclick=()=>{
+    b.disabled=true;
+    document.getElementById('detail-ia').style.display='block';
+    document.getElementById('detail-ia').innerHTML='<div class="loading"><span class="spinner"></span>🔵 Generando predicción IA...</div>';
+    analizarConIA(enriched, riesgo);
+  }; }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1290,7 +1236,7 @@ async function analizarConIA(l, riesgo) {
 4)Probabilidad de ganar (%) y factor más crítico`;
   try{
     const txt=await callAI(prompt,380);
-    document.getElementById('detail-ia').innerHTML=`<div class="sec-title" style="margin-bottom:4px;">🔵 Predicción IA — basada en datos reales + análisis</div><div class="ai-box ai-green">${txt.replace(/\n/g,'<br>')}</div>`;
+    document.getElementById('detail-ia').innerHTML=`<div class="sec-title" style="margin-bottom:4px;">🔵 Predicción IA — basada en datos reales + análisis</div><div class="ai-box ai-green">${esc(txt).replace(/\n/g,'<br>')}</div>`;
   }catch(e){
     document.getElementById('detail-ia').innerHTML=`<div style="font-size:10px;color:#aaa;">Predicción IA no disponible: ${e.message}</div>`;
   }
@@ -1394,7 +1340,7 @@ async function generarKeywordsIA(){
 
 function renderEmpresaSelector(){
   const sel=document.getElementById('empresa-select');
-  sel.innerHTML=empresas.map(e=>`<option value="${e.id}">${e.nombre}</option>`).join('');
+  sel.innerHTML=empresas.map(e=>`<option value="${esc(e.id)}">${esc(e.nombre)}</option>`).join('');
   sel.value=activeEmpresaId;
   document.getElementById('empresa-dot').style.background=getActiveEmpresa().color;
 }
@@ -1403,7 +1349,8 @@ function switchEmpresa(id){
   activeEmpresaId=id;
   localStorage.setItem('licit_active_empresa',id);
   document.getElementById('empresa-dot').style.background=getActiveEmpresa().color;
-  if(allLics.length) processLics(allLics, allLics.length);
+  if(allLics.length) processLics(allLics);
+  renderParticipaciones();
   if(document.getElementById('tab-compraagil')?.style.display==='block') caInit();
 }
 
@@ -1415,17 +1362,17 @@ function renderEmpresasList(){
     return`<div class="empresa-card ${isActive?'active-empresa':''}" style="padding-left:1.2rem;">
       <div class="empresa-color-strip" style="background:${e.color};"></div>
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;">
-        <div><div style="font-size:13px;font-weight:700;">${e.nombre} ${isActive?'<span style="font-size:10px;color:#185FA5;">● activa</span>':''}</div>
+        <div><div style="font-size:13px;font-weight:700;">${esc(e.nombre)} ${isActive?'<span style="font-size:10px;color:#185FA5;">● activa</span>':''}</div>
         <div style="font-size:10px;color:#888;">RUT: ${e.rut||'—'} · ${e.exp||5} años · Máx: $${((e.montoMax||50000000)/1e6).toFixed(0)}M</div></div>
         <div style="display:flex;gap:5px;flex-shrink:0;">
-          ${!isActive?`<button class="btn btn-primary btn-sm" onclick="switchEmpresa('${e.id}');setTab('top10',document.querySelectorAll('#main-tabs .tab')[0])">Activar</button>`:''}
+          ${!isActive?`<button class="btn btn-primary btn-sm" onclick="switchEmpresa('${e.id}');setTab('top10')">Activar</button>`:''}
           <button class="btn btn-sm" onclick="openModal('modal-empresa','${e.id}')">Editar</button>
           ${empresas.length>1?`<button class="btn btn-danger btn-sm" onclick="deleteEmpresa('${e.id}')">✕</button>`:''}
         </div>
       </div>
-      <div style="font-size:11px;color:#888;margin-bottom:5px;">${e.desc||''}</div>
+      <div style="font-size:11px;color:#888;margin-bottom:5px;">${esc(e.desc||'')}</div>
       <div style="margin-bottom:4px;">${srTags}</div>
-      <div style="font-size:10px;color:#aaa;">Keywords: ${(e.keywords||'').substring(0,90)}...</div>
+      <div style="font-size:10px;color:#aaa;">Keywords: ${esc((e.keywords||'').substring(0,90))}...</div>
     </div>`;
   }).join('');
 }
@@ -1434,70 +1381,8 @@ function deleteEmpresa(id){
   if(!confirm('¿Eliminar empresa?'))return;
   empresas=empresas.filter(e=>e.id!==id);
   localStorage.setItem('licit_empresas',JSON.stringify(empresas));
-  if(activeEmpresaId===id){activeEmpresaId=empresas[0].id;localStorage.setItem('licit_active_empresa',activeEmpresaId);}
+  if(activeEmpresaId===id) switchEmpresa(empresas[0].id);
   renderEmpresaSelector();renderEmpresasList();
-}
-
-// ═══════════════════════════════════════════════════════
-// SIMULADOR
-// ═══════════════════════════════════════════════════════
-function populateSimSelect(){
-  const s=document.getElementById('sim-select');
-  s.innerHTML='<option value="">— Selecciona licitación —</option>';
-  allLics.forEach((l,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${i+1}. ${(l._nombre||'').substring(0,55)}`;s.appendChild(o);});
-  s.onchange=function(){if(this.value!==''){selectedLicit=allLics[parseInt(this.value)];buildSimSliders();showSimPreview();document.getElementById('sim-content').style.display='block';}};
-}
-function showSimPreview(){
-  if(!selectedLicit)return;
-  const l=selectedLicit,ri=l._riesgoScore||0;
-  document.getElementById('sim-data-preview').innerHTML=`<div class="data-grid" style="margin-bottom:.7rem;">
-    ${diVal('Tipo',l._tipo,'','real')}
-    ${diVal('Días cierre',l._diasCierre>0?l._diasCierre+' días':'—',l._diasCierre<=5&&l._diasCierre>0?'red':'green','real')}
-    ${diVal('Reclamos',l._reclamos||0,l._reclamos>0?'red':'green','real')}
-    ${diVal('Riesgo',ri+'/100','','analisis')}
-  </div>`;
-}
-function buildSimSliders(){
-  const emp=getActiveEmpresa();
-  const vars=[{id:'precio',label:'Precio competitivo',val:70,unit:'%'},{id:'tecnico',label:'Propuesta técnica',val:80,unit:'pts'},{id:'exp_sl',label:'Experiencia (años)',val:Math.min(10,emp.exp||5),min:0,max:10,unit:'años'},{id:'plazo',label:'Cumplimiento plazo',val:90,unit:'%'},{id:'garantia',label:'Garantías',val:75,unit:'%'},{id:'local',label:'Conocimiento organismo',val:60,unit:'%'}];
-  document.getElementById('sim-sliders').innerHTML=vars.map(v=>`<div class="sim-item"><label>${v.label}</label><input type="range" min="${v.min||0}" max="${v.max||100}" value="${v.val}" id="sl-${v.id}" oninput="document.getElementById('sv-${v.id}').textContent=this.value+' ${v.unit}'"><span id="sv-${v.id}" style="font-size:10px;color:#888;">${v.val} ${v.unit}</span></div>`).join('');
-}
-async function runSimulation(){
-  if(!selectedLicit)return;
-  document.getElementById('sim-result').innerHTML='<div class="loading"><span class="spinner"></span>Simulando...</div>';
-  const emp=getActiveEmpresa();
-  const vals={};['precio','tecnico','exp_sl','plazo','garantia','local'].forEach(id=>{vals[id]=document.getElementById(`sl-${id}`)?.value||70;});
-  const notas=document.getElementById('sim-notas')?.value||'';
-  const l=selectedLicit;
-  const prompt=`[DATOS REALES] Licitación:"${l._nombre}"|${l._organismo}|${l._tipo}|$${(l._montoEstimado/1e6||0).toFixed(1)}M|${l._diasCierre}d|rec:${l._reclamos}|${l._convocatoria===0?'cerrada':'abierta'}|${l._oferentes}of
-[ANÁLISIS] Riesgo:${l._riesgoScore}/100
-[EMPRESA] ${emp.nombre}(${emp.exp}a,${emp.rubro})
-[OFERTA] precio${vals.precio}% tec${vals.tecnico}pts exp${vals.exp_sl}a plazo${vals.plazo}% gta${vals.garantia}% org${vals.local}%${notas?' '+notas:''}
-[PREDICCIÓN] 1)Puntaje/100 con desglose 2)Prob.ganar% 3)2 competidores probables 4)Variable crítica 5)Táctica concreta`;
-  try{const txt=await callAI(prompt,400);document.getElementById('sim-result').innerHTML=`<div class="sec-title">🔵 Predicción IA</div><div class="ai-box ai-green">${txt.replace(/\n/g,'<br>')}</div>`;}
-  catch(e){document.getElementById('sim-result').innerHTML=`<div class="ai-box ai-red">Error: ${e.message}</div>`;}
-}
-
-// ═══════════════════════════════════════════════════════
-// HISTORIAL & RIESGO
-// ═══════════════════════════════════════════════════════
-async function buscarHistorial(){
-  const org=document.getElementById('org-input').value.trim();if(!org)return;
-  const c=document.getElementById('historial-result');
-  c.innerHTML='<div class="loading"><span class="spinner"></span>Analizando...</div>';
-  const emp=getActiveEmpresa();
-  const orgData=allLics.filter(l=>l._organismo===org);
-  const dataCtx=orgData.length?`[DATOS REALES API hoy] ${orgData.map(l=>`${l._tipo}$${(l._montoEstimado/1e6||0).toFixed(1)}M ${l._diasCierre}d ${l._reclamos}rec${l._convocatoria===0?' cerrada':''}`).join('|')}`:'Sin datos reales disponibles hoy.';
-  const prompt=`${dataCtx}
-[ANÁLISIS+PREDICCIÓN] Organismo Chile:"${org}" Empresa:${emp.nombre}(${emp.exp}a,${emp.rubro},subrubros:[${(emp.subrubros||[]).join(',')}])
-Breve: 1)Perfil comprador 2)Criterios evaluación típicos 3)Perfil ganadores 4)Patrones 5)Estrategia para ganarle 6)Alertas`;
-  try{
-    const txt=await callAI(prompt,380);
-    c.innerHTML=`<div style="font-size:12px;font-weight:700;margin-bottom:5px;">${org}</div>
-    <div class="sec-title">🔵 Análisis + Predicción IA</div>
-    <div class="ai-box ai-purple">${txt.replace(/\n/g,'<br>')}</div>
-    <button class="btn btn-danger btn-sm" style="margin-top:5px;" onclick="goRiesgo('${org.replace(/'/g,'')}')">Analizar riesgo ↗</button>`;
-  }catch(e){c.innerHTML=`<div class="ai-box ai-red">Error: ${e.message}</div>`;}
 }
 
 function buildGauge(score){
@@ -1510,53 +1395,12 @@ function buildGauge(score){
   return `<svg width="130" height="74" viewBox="0 0 130 74"><path d="M${ax},${ay} A${r},${r} 0 0,1 ${bx},${by}" fill="none" stroke="#e5e5e0" stroke-width="8" stroke-linecap="round"/><path d="M${ax},${ay} A${r},${r} 0 0,1 ${px},${py}" fill="none" stroke="${col}" stroke-width="8" stroke-linecap="round"/><text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="18" font-weight="700" fill="${col}">${score}</text><text x="${cx}" y="${cy+12}" text-anchor="middle" font-size="9" fill="#888">/100</text></svg>`;
 }
 
-async function analizarRiesgoOrg(){
-  const org=document.getElementById('risk-org-input').value.trim();if(!org)return;
-  const c=document.getElementById('risk-org-result');
-  c.innerHTML='<div class="loading"><span class="spinner" style="border-top-color:#E24B4A;"></span>Calculando...</div>';
-  const orgData=allLics.filter(l=>l._organismo===org);
-  const totalRec=orgData.reduce((s,l)=>s+l._reclamos,0);
-  const cerradas=orgData.filter(l=>l._convocatoria===0).length;
-  const plazoCorto=orgData.filter(l=>l._diasCierre>0&&l._diasCierre<=5).length;
-  const dataReal=orgData.length?`[DATOS REALES API] ${orgData.length}lic rec=${totalRec} cerradas=${cerradas} plazoCorto=${plazoCorto} tipos=${[...new Set(orgData.map(l=>l._tipo))].join(',')}`:'-';
-  const prompt=`${dataReal}
-[PREDICCIÓN] Auditor compras Chile. Organismo:"${org}"
-INDICE:[0-100] NIVEL:[Bajo/Moderado/Alto/Crítico] SEÑALES:[lista] ANTECEDENTES:[Contraloría/Fiscalía] RECOMENDACION:[postular/caso a caso/evitar]`;
-  try{
-    const txt=await callAI(prompt,400);
-    const sm=txt.match(/INDICE:\s*(\d+)/i);
-    const score=Math.min(100,sm?parseInt(sm[1]):Math.max(totalRec*15,cerradas>0?30:0,plazoCorto>0?20:0));
-    addToRadar(org,score);updateCritMetric();
-    allLics.forEach(l=>{if(l._organismo===org)l._riskScore=score;});renderList();
-    c.innerHTML=`<div class="risk-gauge">
-      <div style="text-align:center;">${buildGauge(score)}<div style="font-size:10px;color:${riskColor(score)};font-weight:700;">${riskLabel(score)}</div></div>
-      <div style="flex:1;min-width:130px;"><div style="font-size:14px;font-weight:700;margin-bottom:3px;">${org}</div>
-      <span style="font-size:10px;padding:2px 9px;border-radius:20px;font-weight:700;background:${riskBg(score)};color:${riskColor(score)};">${riskLabel(score)} · ${score}/100</span>
-      ${totalRec>0?`<div style="font-size:10px;color:#A32D2D;margin-top:3px;">🟢 ${totalRec} reclamo(s) en datos reales</div>`:''}</div>
-    </div>
-    <div class="sec-title">🟢 Datos reales + 🟡 Análisis + 🔵 Predicción IA</div>
-    <div class="ai-box ${score>=76?'ai-red':score>=51?'ai-amber':'ai-green'}">${txt.replace(/\n/g,'<br>')}</div>
-    <button class="btn btn-primary btn-sm" onclick="compararSector('${org.replace(/'/g,'')}')">Comparar con sector ↗</button>
-    <div id="comp-result" style="margin-top:.6rem;"></div>`;
-  }catch(e){c.innerHTML=`<div class="ai-box ai-red">Error: ${e.message}</div>`;}
-}
-
-async function compararSector(org){
-  document.getElementById('comp-result').innerHTML='<div class="loading"><span class="spinner"></span>Comparando...</div>';
-  const prompt=`[PREDICCIÓN] Compara "${org}" vs promedio ChileCompra: transparencia, precio/técnica, trato directo, diversidad proveedores. Numérico y breve.`;
-  try{const txt=await callAI(prompt,280);document.getElementById('comp-result').innerHTML=`<div class="ai-box ai-purple">${txt.replace(/\n/g,'<br>')}</div>`;}
-  catch(e){document.getElementById('comp-result').innerHTML='';}
-}
-
 async function analizarRiesgoLic(){
   const nombre=document.getElementById('rl-nombre').value.trim(),org=document.getElementById('rl-org').value.trim(),monto=document.getElementById('rl-monto').value.trim(),dias=parseInt(document.getElementById('rl-dias').value)||0,tipo=document.getElementById('rl-tipo').value,reclamos=parseInt(document.getElementById('rl-reclamos').value)||0,conv=document.getElementById('rl-conv').value,oferentes=parseInt(document.getElementById('rl-oferentes').value)||0,bases=document.getElementById('rl-bases').value.trim().substring(0,2000),adjud=document.getElementById('rl-adjud').value.trim();
   if(!nombre&&!org)return;
-  // 🟡 ANÁLISIS de datos duros
-  let hardScore=0,hardSignals=[];
-  if(reclamos>0){hardScore+=Math.min(30,reclamos*10);hardSignals.push(`${reclamos}rec`);}
-  if(dias>0&&dias<=5&&['LE','LP','LQ','LR'].includes(tipo)){hardScore+=25;hardSignals.push(`${dias}d`);}
-  if(conv==='0'){hardScore+=20;hardSignals.push('Cerrada');}
-  if(oferentes>0&&oferentes<=2){hardScore+=15;hardSignals.push(`${oferentes}of`);}
+  // 🟡 ANÁLISIS de datos duros (misma regla que las tarjetas)
+  const duro=analizarRiesgoInline({_reclamos:reclamos,_diasCierre:dias,_tipo:tipo,_convocatoria:conv==='0'?0:1,_oferentes:oferentes});
+  const hardScore=duro.score, hardSignals=duro.signals;
   const c=document.getElementById('risk-lic-result');
   c.innerHTML='<div class="loading"><span class="spinner" style="border-top-color:#E24B4A;"></span>Calculando...</div>';
   const prompt=`[DATOS REALES] "${nombre||org}"|${org}|${tipo}|$${monto}|${dias}d|rec:${reclamos}|${conv==='0'?'cerrada':'abierta'}|${oferentes}of|adj:${adjud||'-'}
@@ -1594,8 +1438,8 @@ function renderRiskRadar(){
   if(!radarData.length){empty.style.display='block';c.innerHTML='';return;}
   empty.style.display='none';
   c.innerHTML=[...radarData].sort((a,b)=>b.score-a.score).map(o=>`
-    <div class="org-card ${o.score>=51?'flagged':''}" onclick="document.getElementById('risk-org-input').value='${o.org}';analizarRiesgoOrg();">
-      <div style="font-size:11px;font-weight:700;margin-bottom:3px;">${o.org}</div>
+    <div class="org-card ${o.score>=51?'flagged':''}">
+      <div style="font-size:11px;font-weight:700;margin-bottom:3px;">${esc(o.org)}</div>
       <span style="font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;background:${riskBg(o.score)};color:${riskColor(o.score)};">${riskLabel(o.score)} · ${o.score}</span>
       <div style="font-size:9px;color:#aaa;margin-top:1px;">${o.ts}</div>
       <div class="hm-bar" style="margin-top:3px;"><div style="height:100%;border-radius:2px;width:${o.score}%;background:${riskColor(o.score)};"></div></div>
@@ -1603,9 +1447,9 @@ function renderRiskRadar(){
 }
 
 function setRiskTab(name,el){
-  document.querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#tab-riesgo .inner-tab').forEach(t=>t.classList.remove('active'));
   if(el)el.classList.add('active');
-  ['org','lic','radar','metodologia'].forEach(t=>{const e=document.getElementById('risk-tab-'+t);if(e)e.style.display=t===name?'block':'none';});
+  ['lic','radar','metodologia'].forEach(t=>{const e=document.getElementById('risk-tab-'+t);if(e)e.style.display=t===name?'block':'none';});
   if(name==='radar')renderRiskRadar();
 }
 
@@ -1618,9 +1462,10 @@ function saveParticipacion(){
   if(participaciones.length>=2)generarAprendizaje();
 }
 function renderParticipaciones(){
-  const won=participaciones.filter(p=>p.resultado==='won').length,total=participaciones.filter(p=>p.resultado!=='pending').length;
-  if(total>0)document.getElementById('m-tasa').textContent=Math.round(won/total*100)+'%';
-  document.getElementById('participaciones-list').innerHTML=participaciones.map(p=>`<div class="partic-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px;"><div style="font-size:11px;font-weight:700;">${p.nombre||p.codigo}</div><span class="result-pill ${p.resultado}">${p.resultado==='won'?'Ganada':p.resultado==='lost'?'Perdida':'Pendiente'}</span></div><div style="font-size:10px;color:#888;">${p.org}${p.empresa?' · '+p.empresa:''} · ${p.fecha}${p.puntaje?' · Puntaje '+p.puntaje:''}</div>${p.notas?`<div style="font-size:10px;margin-top:2px;color:#aaa;">${p.notas}</div>`:''}</div>`).join('');
+  const empN=getActiveEmpresa().nombre, propias=participaciones.filter(p=>!p.empresa||p.empresa===empN);
+  const won=propias.filter(p=>p.resultado==='won').length,total=propias.filter(p=>p.resultado!=='pending').length;
+  document.getElementById('m-tasa').textContent=total>0?Math.round(won/total*100)+'%':'—';
+  document.getElementById('participaciones-list').innerHTML=participaciones.map(p=>`<div class="partic-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px;"><div style="font-size:11px;font-weight:700;">${esc(p.nombre||p.codigo)}</div><span class="result-pill ${p.resultado}">${p.resultado==='won'?'Ganada':p.resultado==='lost'?'Perdida':'Pendiente'}</span></div><div style="font-size:10px;color:#888;">${esc(p.org)}${p.empresa?' · '+esc(p.empresa):''} · ${p.fecha}${p.puntaje?' · Puntaje '+p.puntaje:''}</div>${p.notas?`<div style="font-size:10px;margin-top:2px;color:#aaa;">${esc(p.notas)}</div>`:''}</div>`).join('');
 }
 async function generarAprendizaje(){
   const emp=getActiveEmpresa();
@@ -1641,14 +1486,14 @@ function saveAlerta(){
   renderAlertas();document.getElementById('m-alerts').textContent=alertas.length;
 }
 function renderAlertas(){
-  document.getElementById('alertas-list').innerHTML=alertas.map(a=>`<div class="alert-card"><div><div style="font-size:12px;font-weight:700;">"${a.kw}"</div><div style="font-size:10px;color:#888;">Score mín: ${a.score}% · $${(a.mmin/1e6).toFixed(1)}M–$${(a.mmax/1e6).toFixed(1)}M</div></div><button class="btn btn-danger btn-sm" onclick="alertas=alertas.filter(x=>x.id!=${a.id});localStorage.setItem('licit_alerts',JSON.stringify(alertas));renderAlertas();document.getElementById('m-alerts').textContent=alertas.length;">✕</button></div>`).join('');
+  document.getElementById('alertas-list').innerHTML=alertas.map(a=>`<div class="alert-card"><div><div style="font-size:12px;font-weight:700;">"${esc(a.kw)}"</div><div style="font-size:10px;color:#888;">${esc(empresas.find(e=>e.id===a.empresa)?.nombre||'Todas las empresas')} · Score mín: ${a.score}% · $${(a.mmin/1e6).toFixed(1)}M–$${(a.mmax/1e6).toFixed(1)}M</div></div><button class="btn btn-danger btn-sm" onclick="alertas=alertas.filter(x=>x.id!=${a.id});localStorage.setItem('licit_alerts',JSON.stringify(alertas));renderAlertas();document.getElementById('m-alerts').textContent=alertas.length;">✕</button></div>`).join('');
   checkAlertas();
 }
 function checkAlertas(){
   if(!alertas.length||!allLics.length)return;
   const matched=allLics.filter(l=>l._alerts&&l._alerts.length>0);
   const c=document.getElementById('alertas-triggered');
-  if(matched.length)c.innerHTML=`<div class="panel"><h3>Licitaciones que activan alertas (${matched.length})</h3>${matched.map(l=>`<div class="alert-card"><div><div style="font-size:11px;font-weight:700;">${l._nombre}</div><div style="font-size:10px;color:#888;">${l._organismo} · ${l._score}%</div></div><button class="btn btn-primary btn-sm" onclick="goSimular('${l._codigo}')">Simular ↗</button></div>`).join('')}</div>`;
+  if(matched.length)c.innerHTML=`<div class="panel"><h3>Licitaciones que activan alertas (${matched.length})</h3>${matched.map(l=>`<div class="alert-card"><div><div style="font-size:11px;font-weight:700;">${esc(l._nombre)}</div><div style="font-size:10px;color:#888;">${esc(l._organismo||'—')} · ${l._score}%</div></div><button class="btn btn-primary btn-sm" onclick="verLic('${esc(l._codigo)}')">Ver ↗</button></div>`).join('')}</div>`;
   else c.innerHTML='';
 }
 
@@ -1660,7 +1505,7 @@ function renderHeatmap(){
   if(!allLics.length){c.innerHTML='<div class="loading">Genera el barrido primero.</div>';return;}
   const orgs={};
   allLics.forEach(l=>{
-    const k=l._organismo||'Desconocido';
+    const k=l._organismo||'Sin detalle cargado';
     if(!orgs[k])orgs[k]={nombre:k,scores:[],risk:radarData.find(r=>r.org===k)?.score||null,reclamos:0,cerradas:0};
     orgs[k].scores.push(l._score);
     orgs[k].reclamos+=l._reclamos;
@@ -1670,8 +1515,8 @@ function renderHeatmap(){
   c.innerHTML=`<div class="hm-grid">${sorted.map(o=>{
     const col=o.avg>=70?'#639922':o.avg>=50?'#BA7517':'#E24B4A';
     const bg=o.avg>=70?'#EAF3DE':o.avg>=50?'#FAEEDA':'#FCEBEB';
-    return`<div class="hm-card" style="background:${bg};" onclick="goRiesgo('${o.nombre.replace(/'/g,'')}')">
-      <div style="font-size:11px;font-weight:700;">${o.nombre}</div>
+    return`<div class="hm-card" style="background:${bg};cursor:default;">
+      <div style="font-size:11px;font-weight:700;">${esc(o.nombre)}</div>
       <div style="font-size:10px;color:${col};font-weight:700;">${o.avg}% 🟡</div>
       ${o.risk!=null?`<div style="font-size:9px;color:${riskColor(o.risk)};">Riesgo: ${o.risk}/100 🔵</div>`:''}
       ${o.reclamos>0?`<div style="font-size:9px;color:#A32D2D;">${o.reclamos} rec. 🟢</div>`:''}
@@ -1686,6 +1531,7 @@ function renderHeatmap(){
 async function handlePDF(input){
   const file=input.files[0];if(!file)return;
   const c=document.getElementById('pdf-result');
+  if(file.size>10*1024*1024){ c.innerHTML='<div class="ai-box ai-red">El PDF supera 10 MB.</div>'; return; }
   const emp=getActiveEmpresa();
   c.innerHTML='<div class="loading"><span class="spinner"></span>Extrayendo texto del PDF...</div>';
   try{
@@ -1725,14 +1571,6 @@ let histCache = JSON.parse(localStorage.getItem('licit_hist_cache') || '[]');
 async function fetchOCDSAward(codigo) {
   try {
     const r = await fetch(`https://apis.mercadopublico.cl/OCDS/data/award/${encodeURIComponent(codigo)}`);
-    if (!r.ok) return null;
-    return await r.json();
-  } catch(e) { return null; }
-}
-
-async function fetchOCDSListado(anno, mes, ini=1, fin=50) {
-  try {
-    const r = await fetch(`https://api.mercadopublico.cl/APISOCDS/OCDS/listaOCDSAgnoMes/${anno}/${mes}/${ini}/${fin}`);
     if (!r.ok) return null;
     return await r.json();
   } catch(e) { return null; }
@@ -1780,7 +1618,7 @@ function parseOCDSAward(data, codigo) {
 
 function cargarRubrosEmpresa() {
   const emp = getActiveEmpresa();
-  const kws = (emp.keywords || '').split(',').slice(0,3).map(k=>k.trim()).join(', ');
+  const kws = kwList(emp).slice(0,3).join(', ');
   document.getElementById('hist-keyword').value = kws;
 }
 
@@ -1804,7 +1642,6 @@ async function buscarAdjudicaciones() {
 
     // Buscar en el mes seleccionado y el anterior
     for (let m = parseInt(mes); m >= Math.max(1, parseInt(mes)-2); m--) {
-      const mm = String(m).padStart(2,'0');
       mesesABuscar.push({anno, mes: m});
     }
 
@@ -2075,22 +1912,23 @@ function setHistTab(name, el) {
 // ═══════════════════════════════════════════════════════
 // NAVEGACIÓN
 // ═══════════════════════════════════════════════════════
-function goSimular(code){setTab('simulador',document.querySelectorAll('#main-tabs .tab')[2]);const idx=allLics.findIndex(l=>l._codigo===code);if(idx>=0){document.getElementById('sim-select').value=idx;selectedLicit=allLics[idx];buildSimSliders();showSimPreview();document.getElementById('sim-content').style.display='block';}}
-function goHistorial(org){setTab('historial',document.querySelectorAll('#main-tabs .tab')[3]);document.getElementById('org-input').value=org;buscarHistorial();}
-function goRiesgo(org){setTab('riesgo',document.querySelectorAll('#main-tabs .tab')[4]);document.getElementById('risk-org-input').value=org;analizarRiesgoOrg();}
-function prefillPart(code,nombre,org,monto){setTab('participaciones',document.querySelectorAll('#main-tabs .tab')[5]);document.getElementById('part-codigo').value=code;document.getElementById('part-nombre').value=nombre;document.getElementById('part-org').value=org;document.getElementById('part-monto').value=monto;}
-function setTab(name,el){
-  document.querySelectorAll('#main-tabs .tab').forEach(t=>t.classList.remove('active'));
-  if(el&&el.classList)el.classList.add('active');
-  ['top10','empresas','simulador','historial','riesgo','participaciones','alertas','heatmap','bases','historial-mercado','compraagil'].forEach(t=>{const e=document.getElementById('tab-'+t);if(e)e.style.display=t===name?'block':'none';});
+function verLic(code){ setTab('top10'); const idx=allLics.findIndex(l=>l._codigo===code); if(idx>=0) selectLic(idx); }
+function prefillPart(code){
+  const l=allLics.find(x=>x._codigo===code)||{};
+  setTab('participaciones');
+  document.getElementById('part-codigo').value=l._codigo||code;
+  document.getElementById('part-nombre').value=l._nombre||'';
+  document.getElementById('part-org').value=l._organismo||'';
+  document.getElementById('part-monto').value=l._montoEstimado||'';
+}
+function setTab(name){
+  document.querySelectorAll('#main-tabs .tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  document.querySelectorAll('.tab-content').forEach(e=>{ e.style.display = e.id==='tab-'+name ? 'block' : 'none'; });
   if(name==='empresas')renderEmpresasList();
   if(name==='compraagil')caInit();
 }
-function setFilter(el,f){document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');currentFilter=f;renderList();}
+function setFilter(el,f){document.querySelectorAll('#filters-container .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');currentFilter=f;renderList();}
 
-// ═══════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════
 // MÓDULO COMPRA ÁGIL (API v2 vía proxy Netlify)
 // 🟢 datos reales · 🟡 análisis de caché local · 🔵 IA
@@ -2160,7 +1998,7 @@ async function caBarrerActivas(){
   caBarriendo = true;
   document.getElementById('ca-detail').innerHTML='';
   const res = await caBarridoAbierto();
-  caAbiertas = res.lics.map(l=>l._caRaw); caInfo = res.info;
+  caAbiertas = res.lics; caInfo = res.info;
   if(res.info.ok) caBarridoTs = Date.now();
   caBarriendo = false;
   caRenderActivas();
@@ -2172,7 +2010,7 @@ function caRenderActivas(){
   const emp = getActiveEmpresa();
   const f = (document.getElementById('ca-q').value||'').trim().toLowerCase();
   const solo = document.getElementById('ca-solo').value;
-  const kws = (emp.keywords||'').split(/[\n,]/).map(k=>k.trim().toLowerCase()).filter(Boolean);
+  const kws = kwList(emp);
   let lista = caAbiertas.map(ca=>{
     const t=(ca.nombre||'').toLowerCase();
     return {...ca, _score:caScore(ca,emp,f), _match: kws.some(k=>t.includes(k))};
@@ -2227,7 +2065,7 @@ function caRefreshMetrics(){
 function caScore(ca, emp, q){
   let s = 35;
   const texto = (ca.nombre||'').toLowerCase();
-  const kws = (emp.keywords||'').split(/[\n,]/).map(k=>k.trim().toLowerCase()).filter(Boolean);
+  const kws = kwList(emp);
   if(q && texto.includes(q.toLowerCase())) s += 10;
   s += Math.min(25, kws.filter(k=>texto.includes(k)).length*8);
   const monto = ca.montos?.monto_disponible_clp||0;
@@ -2235,36 +2073,6 @@ function caScore(ca, emp, q){
   const of = ca.resumen?.total_ofertas_recibidas||0;
   if(of===0) s += 10; else if(of<=2) s += 5;
   return Math.min(95, Math.max(15, s));
-}
-
-async function caBuscarActivas(){
-  const q = document.getElementById('ca-q').value.trim();
-  const region = document.getElementById('ca-region').value;
-  const c = document.getElementById('ca-result');
-  if(!q){ c.innerHTML='<div class="ai-box ai-amber">Elige o escribe una keyword (una a la vez).</div>'; return; }
-  c.innerHTML='<div class="loading"><span class="spinner"></span>Buscando en Compra Ágil...</div>';
-  document.getElementById('ca-detail').innerHTML='';
-  try{
-    const p = await caFetch({q, estado:'publicada', region, tamano_pagina:50, numero_pagina:1});
-    const emp = getActiveEmpresa();
-    caItems = (p.items||[]).map(ca=>({...ca,_score:caScore(ca,emp,q)})).sort((a,b)=>b._score-a._score);
-    const total = p.paginacion?.total_resultados ?? caItems.length;
-    document.getElementById('ca-m-act').textContent = total;
-    document.getElementById('ca-m-rel').textContent = caItems.filter(x=>x._score>=60).length;
-    if(!caItems.length){ c.innerHTML='<div class="loading">Sin Compras Ágiles publicadas para "'+esc(q)+'"'+(region?' en la región '+esc(CA_REGIONES[region]):'')+'.</div>'; return; }
-    c.innerHTML = `<div style="font-size:10px;color:#888;margin-bottom:.6rem;">🟢 ${total} resultados · mostrando ${caItems.length} · "${esc(q)}"</div>` + caItems.map((ca,i)=>{
-      const s=ca._score, cls=s>=70?'sh':s>=50?'sm':'sl';
-      const monto=ca.montos?.monto_disponible_clp||0;
-      const cierre=ca.fechas?.fecha_cierre?new Date(ca.fechas.fecha_cierre).toLocaleString('es-CL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
-      const of=ca.resumen?.total_ofertas_recibidas||0;
-      return `<div class="licit-card" onclick="caSelect(${i})">
-        <div class="licit-header"><div class="licit-title">${i+1}. ${esc(ca.nombre||'Sin nombre')}</div><span class="score-badge ${cls}">${s}%</span></div>
-        <div class="licit-meta"><span>${esc(ca.institucion?.organismo_comprador||ca.institucion?.nombre_institucion||'—')}</span><span>Cierre: ${cierre}</span><span>${caMonto(monto)}</span><span style="color:#aaa;">ID: ${esc(ca.codigo)}</span></div>
-        <div style="display:flex;gap:3px;flex-wrap:wrap;"><span class="tag tag-gray">${of>0?of+' oferta(s)':'sin ofertas'}</span><span class="tag tag-gray">${esc(ca.institucion?.nombre_region||CA_REGIONES[ca.institucion?.region]||'—')}</span></div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${s}%;background:${s>=70?'#639922':s>=50?'#BA7517':'#E24B4A'}"></div></div>
-      </div>`;
-    }).join('');
-  }catch(e){ c.innerHTML='<div class="ai-box ai-red">'+esc(e.message)+'</div>'; }
 }
 
 async function caSelect(i){
@@ -2311,18 +2119,6 @@ function caRenderDetalle(ca, d0, target){
 // por las keywords/subrubros de la empresa activa. Cada página = 1 llamada de cuota.
 // ═══════════════════════════════════════════════════════
 const CA_SWEEP_PAGES = 6; // máx. 6 × 50 = 300 por barrido
-function caNormalizar(ca){
-  const reg = ca.institucion?.nombre_region || CA_REGIONES[ca.institucion?.region] || '';
-  return {
-    _codigo: ca.codigo, _nombre: ca.nombre||'', _tipo:'Compra Ágil', _ca:true, _caRaw:ca,
-    _organismo: ca.institucion?.organismo_comprador || ca.institucion?.nombre_institucion || '',
-    _region: reg, _comuna:'', _estado:'5',
-    _montoEstimado: ca.montos?.monto_disponible_clp||0, _moneda:'CLP',
-    _fechaCierre: ca.fechas?.fecha_cierre||'', _diasCierre: 0, _reclamos:0,
-    _convocatoria: undefined, _oferentes: ca.resumen?.total_ofertas_recibidas||0,
-    _descripcion:'', _fuenteListado:true, _fuenteDetalle:true, _raw:ca
-  };
-}
 async function caBarridoAbierto(){
   const info = {ok:false, total:0, paginas:0, error:''};
   const region = document.getElementById('ca-region')?.value ?? '';
@@ -2346,17 +2142,9 @@ async function caBarridoAbierto(){
     if(!ca.codigo||vistos.has(ca.codigo)) return false; vistos.add(ca.codigo);
     const fc = ca.fechas?.fecha_cierre ? new Date(ca.fechas.fecha_cierre).getTime() : 0;
     return !fc || fc > ahora;
-  }).map(caNormalizar);
+  });
   return {lics, info};
 }
-async function caSelectDesdeTop(l){
-  const box=document.getElementById('detail-container');
-  box.innerHTML='<div class="panel" style="margin-top:.8rem;"><div class="loading"><span class="spinner"></span>Cargando detalle de Compra Ágil...</div></div>';
-  const det = await caFetchDet(l._codigo);
-  caRenderDetalle(l._caRaw, det, 'detail-container');
-  box.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-
 // ── Historial de adjudicaciones ──
 async function caBuscarHistorial(){
   const q = document.getElementById('ca-hq').value.trim();
@@ -2482,6 +2270,9 @@ async function caAnalizarIA(q){
   }catch(e){ c.innerHTML='<div class="ai-box ai-red">'+esc(e.message)+'</div>'; }
 }
 
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
 try {
   renderEmpresaSelector();
   renderParticipaciones();
